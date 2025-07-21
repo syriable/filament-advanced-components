@@ -2,6 +2,7 @@
 
 namespace Syriable\FilamentAdvancedComponents;
 
+use Filament\Schemas\Components\Wizard;
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Spatie\LaravelPackageTools\Package;
@@ -26,5 +27,8 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
                 path: __DIR__.'/../resources/dist/advanced-components-styles.css'
             )->loadedOnRequest(),
         ], 'syriable/filament-advanced-components');
+
+
+        Wizard::macro('heddinHeader',$this->extraAttributes(['class' => 'wizard-hidden-header']));
     }
 }

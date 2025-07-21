@@ -1,5 +1,21 @@
 @source '../views/forms/components/*';
 
+.wizard-hidden-header > ol {
+    display: none !important;
+}
+
+.wizard-hidden-header > div:not(:last-child) {
+    margin-top: 0 !important;
+}
+.wizard-hidden-header.button-full span[x-show="isFirstStep()"],
+.wizard-hidden-header.button-full span[x-show="! isFirstStep()"] {
+    display: none !important;
+}
+.wizard-hidden-header.button-full span[x-show="! isLastStep()"],
+.wizard-hidden-header.button-full span[x-show="isLastStep()"] {
+    width: 100% !important;
+}
+
 .fi-fo-select-btn .fi-fo-select-value-label .palette-select-option {
     display: flex;
     gap: 0.5rem;
