@@ -1,0 +1,52 @@
+@source '../views/forms/components/*';
+
+.fi-fo-select-btn .fi-fo-select-value-label .palette-select-option {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    line-height: 1;
+    height: 1rem;
+    position: absolute;
+    top: calc(50% - 0.5rem);
+}
+
+.fi-dropdown-panel .palette-select-option {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    line-height: 1;
+    height: 1rem;
+}
+
+
+.palette-select-option span {
+    display: block;
+    height: 1rem;
+    line-height: 1;
+}
+
+.palette-select-option span:first-child {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 100%;
+    flex-shrink: 0;
+}
+
+.icon-picker .fi-fo-select-btn .fi-fo-select-value-label {
+    @apply flex items-center justify-center;
+}
+
+.icon-picker .fi-dropdown-panel>.fi-dropdown-list .fi-dropdown-list-item {
+    @apply rounded-lg border border-gray-200 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200;
+
+}
+
+.icon-picker .fi-dropdown-panel>.fi-dropdown-list {
+    @apply grid grid-cols-4 xl:grid-cols-8 gap-2 py-2 mx-2;
+
+}
+
+.icon-picker .fi-dropdown-panel>.fi-dropdown-list .fi-dropdown-list-item {
+    @apply flex items-center justify-center p-2;
+
+}
