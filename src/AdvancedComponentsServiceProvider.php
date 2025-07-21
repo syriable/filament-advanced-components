@@ -35,14 +35,17 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
 
         Wizard::macro('hiddenHeader',fn() => $this->extraAttributes(['class' => 'wizard-hidden-header']));
 
-        Textarea::macro('counter', fn () => $this->fieldWrapperView('filament-advanced-components::components.filament.textarea')->extraAlpineAttributes(['x-init' => '$watch(\'state\',value => length = value?.length); length = state?.length ?? length']));
+        Textarea::macro('counter', fn () => $this->fieldWrapperView('filament-advanced-components::filament.components.textarea')->extraAlpineAttributes(['x-init' => '$watch(\'state\',value => length = value?.length); length = state?.length ?? length']));
 
         Toggle::macro(
             'confirmation',
             fn () => $this->live()
-                ->afterStateUpdated(function ($component, $livewire) {
-                    $livewire->mountFormComponentAction($component->getStatePath(), 'notify_users_confirmation');
-                })
+            ->afterStateUpdated(function ($component, $livewire) {
+                $livewire->mountAction('notify_users_confirmation', [], [
+                    'recordKey' => $livewire->getRecord()?->getKey(),
+                    'schemaComponent' => $component->getId(),
+                ]);
+            })
                 ->registerActions([
                     Action::make('notify_users_confirmation')
                         ->requiresConfirmation()
