@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgress;
+namespace Syriable\Filament\Plugins\AdvancedComponents\MultiProgress;
 
 use BackedEnum;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Htmlable;
-use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgressColumn;
 
 /**
  * A fluent, type-safe value object describing a single slice of a
- * {@see MultiProgressColumn}.
+ * multi-progress bar (`MultiProgressColumn` or `MultiProgressEntry`).
  *
  * Using this object is optional — plain arrays with the same keys are
  * accepted everywhere a segment is expected:

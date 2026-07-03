@@ -1,9 +1,10 @@
 {{--
-    Multi-segment progress bar column.
+    Multi-segment progress bar, shared by MultiProgressColumn (tables) and
+    MultiProgressEntry (infolists).
 
     This template is intentionally "dumb": every percentage, color class,
     tooltip and label is precomputed once per cell by
-    MultiProgressColumn::getProgressData(), so rendering thousands of rows
+    HasMultiProgressBar::getProgressData(), so rendering thousands of rows
     stays cheap. Alpine.js is only used for Filament's `x-tooltip` directive,
     and only when a segment actually has a tooltip.
 --}}
@@ -41,12 +42,12 @@
     {{
         $getExtraAttributeBag()
             ->class([
-                'fi-ta-multi-progress',
-                'fi-ta-multi-progress-compact' => $isCompact,
-                'fi-ta-multi-progress-animated' => $isAnimated(),
-                'fi-ta-multi-progress-striped' => $isStriped(),
-                'fi-ta-multi-progress-gradient' => $hasGradient(),
-                'fi-ta-multi-progress-hoverable' => $hasHoverEffect(),
+                'fi-multi-progress',
+                'fi-multi-progress-compact' => $isCompact,
+                'fi-multi-progress-animated' => $isAnimated(),
+                'fi-multi-progress-striped' => $isStriped(),
+                'fi-multi-progress-gradient' => $hasGradient(),
+                'fi-multi-progress-hoverable' => $hasHoverEffect(),
             ])
             ->style([$rootStyles])
     }}
@@ -54,37 +55,37 @@
     @if ($data['isEmpty'])
         @if ($hasSkeleton())
             {{-- Loading skeleton: a pulsing placeholder track. --}}
-            <div class="fi-ta-multi-progress-row">
+            <div class="fi-multi-progress-row">
                 <div
-                    class="fi-ta-multi-progress-track fi-ta-multi-progress-skeleton"
+                    class="fi-multi-progress-track fi-multi-progress-skeleton"
                     role="status"
-                    aria-label="{{ __('filament-advanced-components::multi-progress-column.loading') }}"
+                    aria-label="{{ __('filament-advanced-components::multi-progress.loading') }}"
                 ></div>
             </div>
         @else
             {{-- Empty state: the column's configured placeholder, if any. --}}
-            <div class="fi-ta-multi-progress-row">
+            <div class="fi-multi-progress-row">
                 <div
-                    class="fi-ta-multi-progress-track"
+                    class="fi-multi-progress-track"
                     role="img"
                     aria-label="{{ $data['ariaLabel'] }}"
                 ></div>
 
                 @if (filled($placeholder))
-                    <span class="fi-ta-multi-progress-placeholder">
+                    <span class="fi-multi-progress-placeholder">
                         {{ $placeholder }}
                     </span>
                 @endif
             </div>
         @endif
     @else
-        <div class="fi-ta-multi-progress-row">
-            <div class="fi-ta-multi-progress-track">
+        <div class="fi-multi-progress-row">
+            <div class="fi-multi-progress-track">
                 {{--
                     Screen readers get a single, comprehensible summary of the
                     whole bar instead of a soup of unlabeled colored boxes.
                 --}}
-                <span class="fi-ta-multi-progress-sr-only">
+                <span class="fi-multi-progress-sr-only">
                     {{ $data['ariaLabel'] }}
                 </span>
 
@@ -93,7 +94,7 @@
 
                     @php
                         $segmentClasses = implode(' ', [
-                            'fi-ta-multi-progress-segment',
+                            'fi-multi-progress-segment',
                             ...$segment['color']['classes'],
                         ]);
 
@@ -146,13 +147,13 @@
             </div>
 
             @if (filled($data['formattedPercentage']) || filled($data['formattedTotal']))
-                <span class="fi-ta-multi-progress-value">
+                <span class="fi-multi-progress-value">
                     @if (filled($data['formattedPercentage']))
                         {{ $data['formattedPercentage'] }}
                     @endif
 
                     @if (filled($data['formattedTotal']))
-                        <span class="fi-ta-multi-progress-total">
+                        <span class="fi-multi-progress-total">
                             {{ filled($data['formattedPercentage']) ? '· ' : '' }}{{ $data['formattedTotal'] }}
                         </span>
                     @endif
@@ -161,11 +162,11 @@
         </div>
 
         @if ($shouldShowLegend())
-            <ul class="fi-ta-multi-progress-legend">
+            <ul class="fi-multi-progress-legend">
                 @foreach ($segments as $segment)
-                    <li class="fi-ta-multi-progress-legend-item">
+                    <li class="fi-multi-progress-legend-item">
                         <span
-                            class="fi-ta-multi-progress-legend-dot {{ implode(' ', $segment['color']['classes']) }}"
+                            class="fi-multi-progress-legend-dot {{ implode(' ', $segment['color']['classes']) }}"
                             @if (filled($segment['color']['styles']))
                                 style="{{ $segment['color']['styles'] }}"
                             @endif
@@ -173,21 +174,21 @@
                         ></span>
 
                         @if (filled($segment['iconHtml']))
-                            <span class="fi-ta-multi-progress-legend-icon" aria-hidden="true">
+                            <span class="fi-multi-progress-legend-icon" aria-hidden="true">
                                 {{ $segment['iconHtml'] }}
                             </span>
                         @endif
 
-                        <span class="fi-ta-multi-progress-legend-label">
+                        <span class="fi-multi-progress-legend-label">
                             {{ $segment['label'] }}
                         </span>
 
-                        <span class="fi-ta-multi-progress-legend-value">
+                        <span class="fi-multi-progress-legend-value">
                             {{ $segment['formattedPercentage'] }}
                         </span>
 
                         @if (filled($segment['badge']))
-                            <span class="fi-ta-multi-progress-legend-badge">
+                            <span class="fi-multi-progress-legend-badge">
                                 {{ $segment['badge'] }}
                             </span>
                         @endif
