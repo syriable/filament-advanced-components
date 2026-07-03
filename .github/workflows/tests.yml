@@ -18,7 +18,10 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, windows-latest]
-        php: [8.4, 8.3, 8.2]
+        # PHP 8.2 is excluded: Filament v5 requires Livewire v4, and
+        # pestphp/pest-plugin-livewire v4 requires PHP >= 8.3, so the dev
+        # dependencies cannot resolve on PHP 8.2.
+        php: [8.4, 8.3]
         laravel: [13.*, 12.*, 11.*]
         stability: [prefer-lowest, prefer-stable]
         include:
@@ -34,9 +37,6 @@ jobs:
             testbench: 9.*
             carbon: 3.*
             collision: 8.*
-        exclude:
-          - laravel: 13.*
-            php: 8.2
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
@@ -59,7 +59,9 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
-          coverage: none
+          # phpunit.xml.dist configures coverage reports, and `pest --ci`
+          # fails outright when no coverage driver is available.
+          coverage: pcov
 
       - name: Setup problem matchers
         run: |

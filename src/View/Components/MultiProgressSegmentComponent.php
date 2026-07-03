@@ -6,7 +6,6 @@ namespace Syriable\Filament\Plugins\AdvancedComponents\View\Components;
 
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
-use Filament\Support\View\Components\ColorMaps\ComponentColorMap;
 use Filament\Support\View\Components\Contracts\HasColor;
 
 /**
@@ -22,6 +21,8 @@ use Filament\Support\View\Components\Contracts\HasColor;
  *
  * Because a progress segment is a non-text UI element, it only needs to meet
  * the WCAG 2.1 AA non-text contrast ratio (3:1) against the track behind it.
+ *
+ * @see https://www.w3.org/WAI/WCAG21/Understanding/non-text-contrast.html
  */
 class MultiProgressSegmentComponent implements HasColor
 {
@@ -33,13 +34,34 @@ class MultiProgressSegmentComponent implements HasColor
     {
         $gray = FilamentColor::getColor('gray');
 
-        return ComponentColorMap::make($color)
-            // Light mode: the track is a light gray wash on a white-ish
-            // surface, so contrast is measured against `gray-50`.
-            ->slot('bg', surface: $gray[50], minRatio: Color::WCAG_AA_NON_TEXT, fallback: 600)
-            // Dark mode: the track sits on a dark gray surface, so start from
-            // the darkest shade and walk up until 3:1 contrast is reached.
-            ->slot('dark:bg', surface: $gray[800], minRatio: Color::WCAG_AA_NON_TEXT, shouldStartFromDarkest: true, fallback: 500)
-            ->get();
+        // Light mode: the track is a light gray wash on a white-ish surface,
+        // so walk from the lightest shade down until one contrasts at least
+        // 3:1 against `gray-50`.
+        ksort($color);
+
+        foreach (array_keys($color) as $shade) {
+            if (Color::isNonTextContrastRatioAccessible($gray[50], $color[$shade])) {
+                $bg = $shade;
+
+                break;
+            }
+        }
+
+        // Dark mode: the track sits on a dark gray surface, so start from the
+        // darkest shade and walk up until 3:1 contrast is reached.
+        krsort($color);
+
+        foreach (array_keys($color) as $shade) {
+            if (Color::isNonTextContrastRatioAccessible($gray[800], $color[$shade])) {
+                $darkBg = $shade;
+
+                break;
+            }
+        }
+
+        return [
+            'bg' => $bg ?? 600,
+            'dark:bg' => $darkBg ?? 500,
+        ];
     }
 }
