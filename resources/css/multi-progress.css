@@ -1,5 +1,6 @@
 /*
- * MultiProgressColumn stylesheet.
+ * Multi-progress bar stylesheet, shared by MultiProgressColumn (tables)
+ * and MultiProgressEntry (infolists).
  *
  * Hand-authored, dependency-free CSS registered through FilamentAsset, so the
  * column works out of the box in any panel — no custom theme required.
@@ -19,7 +20,7 @@
  *  - `--fi-ta-mp-radius`  track border radius
  */
 
-.fi-ta-multi-progress {
+.fi-multi-progress {
     display: flex;
     width: 100%;
     min-width: 5rem;
@@ -27,7 +28,7 @@
     gap: 0.375rem;
 }
 
-.fi-ta-multi-progress-row {
+.fi-multi-progress-row {
     display: flex;
     width: 100%;
     align-items: center;
@@ -39,7 +40,7 @@
  * bar can never overflow — even with sub-pixel rounding or segment gaps.
  * `min-width: 0` lets it shrink correctly inside table layouts.
  */
-.fi-ta-multi-progress-track {
+.fi-multi-progress-track {
     position: relative;
     display: flex;
     height: var(--fi-ta-mp-height, 0.625rem);
@@ -52,7 +53,7 @@
     background-color: color-mix(in oklab, var(--gray-950) 8%, transparent);
 }
 
-.dark .fi-ta-multi-progress-track {
+.dark .fi-multi-progress-track {
     background-color: color-mix(in oklab, var(--gray-200) 12%, transparent);
 }
 
@@ -61,7 +62,7 @@
  * give up space proportionally when segment gaps would push the row past
  * 100%, so the last segment is squeezed instead of clipped.
  */
-.fi-ta-multi-progress-segment {
+.fi-multi-progress-segment {
     position: relative;
     display: block;
     height: 100%;
@@ -70,35 +71,35 @@
     background-color: var(--bg);
 }
 
-.dark .fi-ta-multi-progress-segment {
+.dark .fi-multi-progress-segment {
     background-color: var(--dark-bg);
 }
 
 /* Keyboard focus: a visible ring on tooltip segments and links. */
-.fi-ta-multi-progress-segment:focus-visible {
+.fi-multi-progress-segment:focus-visible {
     z-index: 1;
     outline: 2px solid var(--primary-600);
     outline-offset: 1px;
 }
 
 /* Animated width transitions (e.g. after a Livewire poll or action). */
-.fi-ta-multi-progress-animated .fi-ta-multi-progress-segment {
+.fi-multi-progress-animated .fi-multi-progress-segment {
     transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .fi-ta-multi-progress-animated .fi-ta-multi-progress-segment {
+    .fi-multi-progress-animated .fi-multi-progress-segment {
         transition: none;
     }
 }
 
 /* Hover effect: a subtle brightness lift, signalling tooltips / links. */
-.fi-ta-multi-progress-hoverable .fi-ta-multi-progress-segment:hover {
+.fi-multi-progress-hoverable .fi-multi-progress-segment:hover {
     filter: brightness(1.1);
 }
 
 /* Gradient mode: each segment fades toward a lighter tint of its color. */
-.fi-ta-multi-progress-gradient .fi-ta-multi-progress-segment {
+.fi-multi-progress-gradient .fi-multi-progress-segment {
     background-image: linear-gradient(
         90deg,
         var(--bg),
@@ -106,7 +107,7 @@
     );
 }
 
-.dark .fi-ta-multi-progress-gradient .fi-ta-multi-progress-segment {
+.dark .fi-multi-progress-gradient .fi-multi-progress-segment {
     background-image: linear-gradient(
         90deg,
         var(--dark-bg),
@@ -118,7 +119,7 @@
  * Striped mode: a translucent diagonal overlay, drawn on a pseudo-element so
  * it stacks cleanly on top of both flat and gradient backgrounds.
  */
-.fi-ta-multi-progress-striped .fi-ta-multi-progress-segment::after {
+.fi-multi-progress-striped .fi-multi-progress-segment::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -133,7 +134,7 @@
 }
 
 /* The percentage / total label on the right of the bar. */
-.fi-ta-multi-progress-value {
+.fi-multi-progress-value {
     flex-shrink: 0;
     font-size: 0.75rem;
     line-height: 1rem;
@@ -142,50 +143,50 @@
     color: var(--gray-600);
 }
 
-.dark .fi-ta-multi-progress-value {
+.dark .fi-multi-progress-value {
     color: var(--gray-400);
 }
 
-.fi-ta-multi-progress-total {
+.fi-multi-progress-total {
     font-weight: 400;
     color: var(--gray-400);
 }
 
-.dark .fi-ta-multi-progress-total {
+.dark .fi-multi-progress-total {
     color: var(--gray-500);
 }
 
 /* Empty-state placeholder text. */
-.fi-ta-multi-progress-placeholder {
+.fi-multi-progress-placeholder {
     flex-shrink: 0;
     font-size: 0.75rem;
     line-height: 1rem;
     color: var(--gray-400);
 }
 
-.dark .fi-ta-multi-progress-placeholder {
+.dark .fi-multi-progress-placeholder {
     color: var(--gray-500);
 }
 
 /* Loading skeleton: a pulsing empty track. */
-.fi-ta-multi-progress-skeleton {
-    animation: fi-ta-multi-progress-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.fi-multi-progress-skeleton {
+    animation: fi-multi-progress-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes fi-ta-multi-progress-pulse {
+@keyframes fi-multi-progress-pulse {
     50% {
         opacity: 0.4;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .fi-ta-multi-progress-skeleton {
+    .fi-multi-progress-skeleton {
         animation: none;
     }
 }
 
 /* Legend. */
-.fi-ta-multi-progress-legend {
+.fi-multi-progress-legend {
     display: flex;
     margin: 0;
     padding: 0;
@@ -195,7 +196,7 @@
     list-style: none;
 }
 
-.fi-ta-multi-progress-legend-item {
+.fi-multi-progress-legend-item {
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -203,7 +204,7 @@
     line-height: 1rem;
 }
 
-.fi-ta-multi-progress-legend-dot {
+.fi-multi-progress-legend-dot {
     width: 0.5rem;
     height: 0.5rem;
     flex-shrink: 0;
@@ -211,38 +212,38 @@
     background-color: var(--bg);
 }
 
-.dark .fi-ta-multi-progress-legend-dot {
+.dark .fi-multi-progress-legend-dot {
     background-color: var(--dark-bg);
 }
 
-.fi-ta-multi-progress-legend-icon svg {
+.fi-multi-progress-legend-icon svg {
     width: 0.875rem;
     height: 0.875rem;
     color: var(--gray-500);
 }
 
-.dark .fi-ta-multi-progress-legend-icon svg {
+.dark .fi-multi-progress-legend-icon svg {
     color: var(--gray-400);
 }
 
-.fi-ta-multi-progress-legend-label {
+.fi-multi-progress-legend-label {
     color: var(--gray-600);
 }
 
-.dark .fi-ta-multi-progress-legend-label {
+.dark .fi-multi-progress-legend-label {
     color: var(--gray-400);
 }
 
-.fi-ta-multi-progress-legend-value {
+.fi-multi-progress-legend-value {
     font-variant-numeric: tabular-nums;
     color: var(--gray-400);
 }
 
-.dark .fi-ta-multi-progress-legend-value {
+.dark .fi-multi-progress-legend-value {
     color: var(--gray-500);
 }
 
-.fi-ta-multi-progress-legend-badge {
+.fi-multi-progress-legend-badge {
     padding-inline: 0.375rem;
     border-radius: calc(infinity * 1px);
     background-color: color-mix(in oklab, var(--gray-950) 8%, transparent);
@@ -252,27 +253,27 @@
     color: var(--gray-600);
 }
 
-.dark .fi-ta-multi-progress-legend-badge {
+.dark .fi-multi-progress-legend-badge {
     background-color: color-mix(in oklab, var(--gray-200) 12%, transparent);
     color: var(--gray-400);
 }
 
 /* Compact mode: tighter spacing and typography (the legend is skipped
    server-side, so it needs no styling here). */
-.fi-ta-multi-progress-compact {
+.fi-multi-progress-compact {
     gap: 0.25rem;
 }
 
-.fi-ta-multi-progress-compact .fi-ta-multi-progress-row {
+.fi-multi-progress-compact .fi-multi-progress-row {
     gap: 0.375rem;
 }
 
-.fi-ta-multi-progress-compact .fi-ta-multi-progress-value {
+.fi-multi-progress-compact .fi-multi-progress-value {
     font-size: 0.6875rem;
 }
 
 /* Visually-hidden text for screen readers (equivalent to `sr-only`). */
-.fi-ta-multi-progress-sr-only {
+.fi-multi-progress-sr-only {
     position: absolute;
     width: 1px;
     height: 1px;

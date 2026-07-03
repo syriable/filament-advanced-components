@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Filament\Support\Colors\Color;
 use Illuminate\Support\HtmlString;
-use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgress\Segment;
+use Syriable\Filament\Plugins\AdvancedComponents\MultiProgress\Segment;
 use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgressColumn;
 
 it('normalizes raw values into percentages against the sum', function () {
@@ -236,13 +236,13 @@ it('renders the progress bar view', function () {
         ->showLegend()
         ->toHtml();
 
-    expect($html)->toContain('fi-ta-multi-progress-track')
+    expect($html)->toContain('fi-multi-progress-track')
         ->and($html)->toContain('width: 70%')
         ->and($html)->toContain('width: 30%')
         ->and($html)->toContain('fi-color-success')
         ->and($html)->toContain('fi-color-danger')
         ->and($html)->toContain('x-tooltip')
-        ->and($html)->toContain('fi-ta-multi-progress-legend')
+        ->and($html)->toContain('fi-multi-progress-legend')
         ->and($html)->toContain('Translated: 70%, Missing: 30%')
         ->and($html)->toContain('100%');
 });
@@ -264,7 +264,7 @@ it('renders a skeleton when empty and enabled', function () {
         ->skeleton()
         ->toHtml();
 
-    expect($html)->toContain('fi-ta-multi-progress-skeleton');
+    expect($html)->toContain('fi-multi-progress-skeleton');
 });
 
 it('applies size presets and explicit dimensions', function () {

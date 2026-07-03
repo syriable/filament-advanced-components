@@ -54,7 +54,7 @@ return [
 
 ## Usage
 
-### MultiProgressColumn
+### MultiProgressColumn & MultiProgressEntry
 
 A table column that renders a single progress bar divided into multiple colored segments —
 like the per-language progress bars on translation dashboards such as Crowdin or Lokalise.
@@ -111,6 +111,30 @@ Because rendering is fully server-side Blade, the bar updates automatically with
 polling, actions, and table refreshes just work, and `animated()` (on by default) transitions
 the widths smoothly.
 
+#### Infolists
+
+The same bar is available as an infolist entry, `MultiProgressEntry`, with an
+identical configuration API — swap the class name to move a bar between a
+table and an infolist:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\MultiProgressEntry;
+
+MultiProgressEntry::make('translation_progress')
+    ->segments(fn (Language $record): array => [
+        ['label' => 'Translated', 'value' => $record->translated_count, 'color' => 'success'],
+        ['label' => 'Needs Review', 'value' => $record->review_count, 'color' => 'warning'],
+    ])
+    ->total(fn (Language $record): int => $record->keys_count)
+    ->valueSuffix('keys')
+    ->showPercentage()
+    ->showLegend();
+```
+
+The only naming difference: segment spacing is `segmentGap()` (on both
+components), because infolist entries inherit Filament's schema-level `gap()`
+toggle. The table column additionally accepts `gap()` as an alias.
+
 #### Segment definition
 
 Each segment is an array (or a `Segment` object) with these keys:
@@ -129,7 +153,7 @@ Each segment is an array (or a `Segment` object) with these keys:
 The fluent alternative:
 
 ```php
-use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgress\Segment;
+use Syriable\Filament\Plugins\AdvancedComponents\MultiProgress\Segment;
 
 ->segments(fn ($record) => [
     Segment::make('Translated')
@@ -185,7 +209,7 @@ A per-segment `tooltip` key always wins over the generated one.
 ```php
 ->size('sm')              // xs | sm | md (default) | lg | xl
 ->height(14)              // explicit height: px int or any CSS length string
-->gap(2)                  // pixels between segments
+->segmentGap(2)           // pixels between segments (alias: gap() on the column)
 ->borderRadius(4)         // px int or CSS value; default is fully rounded
 ->squared()               // shorthand for zero radius
 ->animated(false)         // width transitions (on by default, respects reduced motion)
