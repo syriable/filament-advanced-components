@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Syriable\Filament\Plugins\AdvancedComponents\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class AdvancedComponentsCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'filament-advanced-components';
 
     public $description = 'My command';
 
