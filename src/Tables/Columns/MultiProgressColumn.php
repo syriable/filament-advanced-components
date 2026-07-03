@@ -44,9 +44,6 @@ use function Filament\Support\get_component_color_classes;
  */
 class MultiProgressColumn extends Column
 {
-    /**
-     * @var view-string
-     */
     protected string $view = 'filament-advanced-components::tables.columns.multi-progress-column';
 
     /**
@@ -615,7 +612,10 @@ class MultiProgressColumn extends Column
             ];
         }
 
-        $overallPercentage = $isEmpty ? 0.0 : min($sum / $total * 100, 100.0);
+        // The explicit float cast matters: PHP's `/` returns an int when the
+        // division is exact, and min() may then return that int on some PHP
+        // versions.
+        $overallPercentage = $isEmpty ? 0.0 : min((float) ($sum / $total * 100), 100.0);
 
         return [
             'segments' => $processed,
