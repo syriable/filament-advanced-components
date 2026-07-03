@@ -1,0 +1,285 @@
+/*
+ * MultiProgressColumn stylesheet.
+ *
+ * Hand-authored, dependency-free CSS registered through FilamentAsset, so the
+ * column works out of the box in any panel — no custom theme required.
+ *
+ * It follows the same conventions as Filament v5's own compiled CSS:
+ *  - segment colors are consumed via the `--bg` / `--dark-bg` custom
+ *    properties that Filament's `fi-bg-color-{shade}` / `dark:fi-bg-color-{shade}`
+ *    utilities (or our inline styles) provide;
+ *  - palette variables such as `--gray-400` come from the panel's registered
+ *    colors, so custom themes restyle the column automatically;
+ *  - dark mode is driven by the `.dark` class Filament toggles on `<html>`.
+ *
+ * Per-instance sizing is passed in from the Blade view through three custom
+ * properties, keeping the stylesheet static and cacheable:
+ *  - `--fi-ta-mp-height`  track height
+ *  - `--fi-ta-mp-gap`     spacing between segments
+ *  - `--fi-ta-mp-radius`  track border radius
+ */
+
+.fi-ta-multi-progress {
+    display: flex;
+    width: 100%;
+    min-width: 5rem;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.fi-ta-multi-progress-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/*
+ * The track fills the available cell width and clips its children, so the
+ * bar can never overflow — even with sub-pixel rounding or segment gaps.
+ * `min-width: 0` lets it shrink correctly inside table layouts.
+ */
+.fi-ta-multi-progress-track {
+    position: relative;
+    display: flex;
+    height: var(--fi-ta-mp-height, 0.625rem);
+    flex: 1 1 0%;
+    min-width: 0;
+    align-items: stretch;
+    gap: var(--fi-ta-mp-gap, 0px);
+    overflow: hidden;
+    border-radius: var(--fi-ta-mp-radius, calc(infinity * 1px));
+    background-color: color-mix(in oklab, var(--gray-950) 8%, transparent);
+}
+
+.dark .fi-ta-multi-progress-track {
+    background-color: color-mix(in oklab, var(--gray-200) 12%, transparent);
+}
+
+/*
+ * Segments are sized by an inline `width: n%`. `flex-shrink: 1` lets them
+ * give up space proportionally when segment gaps would push the row past
+ * 100%, so the last segment is squeezed instead of clipped.
+ */
+.fi-ta-multi-progress-segment {
+    position: relative;
+    display: block;
+    height: 100%;
+    flex: 0 1 auto;
+    min-width: 0;
+    background-color: var(--bg);
+}
+
+.dark .fi-ta-multi-progress-segment {
+    background-color: var(--dark-bg);
+}
+
+/* Keyboard focus: a visible ring on tooltip segments and links. */
+.fi-ta-multi-progress-segment:focus-visible {
+    z-index: 1;
+    outline: 2px solid var(--primary-600);
+    outline-offset: 1px;
+}
+
+/* Animated width transitions (e.g. after a Livewire poll or action). */
+.fi-ta-multi-progress-animated .fi-ta-multi-progress-segment {
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-ta-multi-progress-animated .fi-ta-multi-progress-segment {
+        transition: none;
+    }
+}
+
+/* Hover effect: a subtle brightness lift, signalling tooltips / links. */
+.fi-ta-multi-progress-hoverable .fi-ta-multi-progress-segment:hover {
+    filter: brightness(1.1);
+}
+
+/* Gradient mode: each segment fades toward a lighter tint of its color. */
+.fi-ta-multi-progress-gradient .fi-ta-multi-progress-segment {
+    background-image: linear-gradient(
+        90deg,
+        var(--bg),
+        color-mix(in oklab, var(--bg) 75%, white)
+    );
+}
+
+.dark .fi-ta-multi-progress-gradient .fi-ta-multi-progress-segment {
+    background-image: linear-gradient(
+        90deg,
+        var(--dark-bg),
+        color-mix(in oklab, var(--dark-bg) 75%, white)
+    );
+}
+
+/*
+ * Striped mode: a translucent diagonal overlay, drawn on a pseudo-element so
+ * it stacks cleanly on top of both flat and gradient backgrounds.
+ */
+.fi-ta-multi-progress-striped .fi-ta-multi-progress-segment::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgb(255 255 255 / 0.25) 0,
+        rgb(255 255 255 / 0.25) 4px,
+        transparent 4px,
+        transparent 8px
+    );
+}
+
+/* The percentage / total label on the right of the bar. */
+.fi-ta-multi-progress-value {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-600);
+}
+
+.dark .fi-ta-multi-progress-value {
+    color: var(--gray-400);
+}
+
+.fi-ta-multi-progress-total {
+    font-weight: 400;
+    color: var(--gray-400);
+}
+
+.dark .fi-ta-multi-progress-total {
+    color: var(--gray-500);
+}
+
+/* Empty-state placeholder text. */
+.fi-ta-multi-progress-placeholder {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--gray-400);
+}
+
+.dark .fi-ta-multi-progress-placeholder {
+    color: var(--gray-500);
+}
+
+/* Loading skeleton: a pulsing empty track. */
+.fi-ta-multi-progress-skeleton {
+    animation: fi-ta-multi-progress-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fi-ta-multi-progress-pulse {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-ta-multi-progress-skeleton {
+        animation: none;
+    }
+}
+
+/* Legend. */
+.fi-ta-multi-progress-legend {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+    list-style: none;
+}
+
+.fi-ta-multi-progress-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.fi-ta-multi-progress-legend-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: calc(infinity * 1px);
+    background-color: var(--bg);
+}
+
+.dark .fi-ta-multi-progress-legend-dot {
+    background-color: var(--dark-bg);
+}
+
+.fi-ta-multi-progress-legend-icon svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--gray-500);
+}
+
+.dark .fi-ta-multi-progress-legend-icon svg {
+    color: var(--gray-400);
+}
+
+.fi-ta-multi-progress-legend-label {
+    color: var(--gray-600);
+}
+
+.dark .fi-ta-multi-progress-legend-label {
+    color: var(--gray-400);
+}
+
+.fi-ta-multi-progress-legend-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-400);
+}
+
+.dark .fi-ta-multi-progress-legend-value {
+    color: var(--gray-500);
+}
+
+.fi-ta-multi-progress-legend-badge {
+    padding-inline: 0.375rem;
+    border-radius: calc(infinity * 1px);
+    background-color: color-mix(in oklab, var(--gray-950) 8%, transparent);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-600);
+}
+
+.dark .fi-ta-multi-progress-legend-badge {
+    background-color: color-mix(in oklab, var(--gray-200) 12%, transparent);
+    color: var(--gray-400);
+}
+
+/* Compact mode: tighter spacing and typography (the legend is skipped
+   server-side, so it needs no styling here). */
+.fi-ta-multi-progress-compact {
+    gap: 0.25rem;
+}
+
+.fi-ta-multi-progress-compact .fi-ta-multi-progress-row {
+    gap: 0.375rem;
+}
+
+.fi-ta-multi-progress-compact .fi-ta-multi-progress-value {
+    font-size: 0.6875rem;
+}
+
+/* Visually-hidden text for screen readers (equivalent to `sr-only`). */
+.fi-ta-multi-progress-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+}

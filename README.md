@@ -54,10 +54,172 @@ return [
 
 ## Usage
 
-```php
-$advancedComponents = new Syriable\Filament\Plugins\AdvancedComponents();
-echo $advancedComponents->echoPhrase('Hello, Syriable\Filament\Plugins!');
+### MultiProgressColumn
+
+A table column that renders a single progress bar divided into multiple colored segments —
+like the per-language progress bars on translation dashboards such as Crowdin or Lokalise.
+
 ```
+|███████████▓▓▓▓░░░░░░|  70% · 600 keys
+```
+
+**What it looks like:**
+
+- *Light mode, default:* a slim pill-shaped bar inside the table cell. Green (Translated),
+  amber (Needs Review), and red (Missing) blocks sit flush against each other, with the overall
+  percentage in small gray tabular figures on the right. Hovering a block raises a Filament
+  tooltip reading "**Translated** / 420 keys / 70%".
+- *Dark mode:* the track becomes a translucent light-gray wash and each segment automatically
+  switches to a shade with at least 3:1 (WCAG AA non-text) contrast against the dark surface.
+- *With legend:* below the bar, a wrapping row of colored dots with labels, percentages, and
+  optional count badges.
+- *Striped / gradient:* diagonal translucent stripes, or a subtle left-to-right lightening
+  gradient per segment.
+- *Empty / loading:* an empty track with optional placeholder text, or a pulsing skeleton bar.
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgressColumn;
+
+MultiProgressColumn::make('translation_progress')
+    ->segments(fn ($record) => [
+        ['label' => 'Translated', 'value' => 70, 'color' => 'success'],
+        ['label' => 'Needs Review', 'value' => 20, 'color' => 'warning'],
+        ['label' => 'Missing', 'value' => 10, 'color' => 'danger'],
+    ]);
+```
+
+Values are normalized automatically: pass percentages, raw counts, or anything else — each
+segment's width is its share of the total. Provide an explicit denominator with `total()` and
+any shortfall renders as empty track:
+
+```php
+MultiProgressColumn::make('translation_progress')
+    ->segments(fn (Language $record): array => [
+        ['label' => 'Translated', 'value' => $record->translated_count, 'color' => 'success'],
+        ['label' => 'Needs Review', 'value' => $record->review_count, 'color' => 'warning'],
+    ])
+    ->total(fn (Language $record): int => $record->keys_count)
+    ->valueSuffix('keys')
+    ->showPercentage()
+    ->showTotal()
+    ->showLegend();
+```
+
+Because rendering is fully server-side Blade, the bar updates automatically with Livewire —
+polling, actions, and table refreshes just work, and `animated()` (on by default) transitions
+the widths smoothly.
+
+#### Segment definition
+
+Each segment is an array (or a `Segment` object) with these keys:
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `label` | `string` | Used in tooltips, the legend, and ARIA labels. |
+| `value` | `int\|float` | Raw amount or percentage; normalized against the total. |
+| `color` | `string\|array` | Semantic name, raw CSS color, or Filament palette (optional). |
+| `tooltip` | `string\|Htmlable` | Overrides the generated tooltip (optional). |
+| `icon` | `string\|BackedEnum` | Shown in the legend entry (optional). |
+| `badge` | `string` | Small badge next to the legend entry (optional). |
+| `url` | `string` | Makes the segment a clickable link (optional). |
+| `shouldOpenUrlInNewTab` | `bool` | Defaults to `false`. |
+
+The fluent alternative:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\MultiProgress\Segment;
+
+->segments(fn ($record) => [
+    Segment::make('Translated')
+        ->value($record->translated_count)
+        ->color('success')
+        ->icon('heroicon-m-language')
+        ->badge((string) $record->translated_count)
+        ->url(route('translations.index', $record)),
+])
+```
+
+If you call neither `segments()` nor pass a closure, the column falls back to its own state —
+so an Eloquent accessor (or JSON-cast attribute) returning a segments array works with zero
+configuration.
+
+#### Colors
+
+Three formats are accepted per segment:
+
+- **Semantic names** — `success`, `warning`, `danger`, `info`, `primary`, `gray`, or any custom
+  color registered with `FilamentColor`. These resolve through Filament's contrast-aware color
+  maps, picking a shade with WCAG AA non-text contrast (3:1) against the track in *both* light
+  and dark mode.
+- **Full palettes** — e.g. `Color::Purple` or `Color::hex('#8b5cf6')` from
+  `Filament\Support\Colors\Color`. Same contrast-aware resolution, inlined as CSS custom
+  properties.
+- **Raw CSS colors** — `#0ea5e9`, `rgb(...)`, `oklch(...)`, `var(--my-brand)`. Used verbatim in
+  both themes.
+
+Segments without a color cycle through `fallbackColors()`
+(default: primary → success → warning → danger → info → gray).
+
+#### Tooltips
+
+Enabled by default. Each segment shows its label, formatted value, and percentage using
+Filament's tooltip system (tippy.js via the `x-tooltip` directive — the only place Alpine is
+used, and only rendered when a tooltip exists).
+
+```php
+->segmentTooltips(false)                       // disable entirely
+->valueSuffix('keys')                          // "420 keys"
+->formatValueUsing(fn ($state) => ...)         // custom value formatting
+->formatPercentageUsing(fn ($state) => ...)    // custom percentage formatting
+->formatSegmentTooltipUsing(                   // fully custom tooltip
+    fn (array $segment) => "{$segment['label']}: {$segment['formattedValue']}"
+)
+```
+
+A per-segment `tooltip` key always wins over the generated one.
+
+#### Appearance
+
+```php
+->size('sm')              // xs | sm | md (default) | lg | xl
+->height(14)              // explicit height: px int or any CSS length string
+->gap(2)                  // pixels between segments
+->borderRadius(4)         // px int or CSS value; default is fully rounded
+->squared()               // shorthand for zero radius
+->animated(false)         // width transitions (on by default, respects reduced motion)
+->striped()               // diagonal stripe overlay
+->gradient()              // subtle per-segment gradient
+->hoverEffect()           // brightness lift on hover
+->compact()               // thinner bar, tighter typography, no legend
+->minSegmentWidth(2)      // tiny segments stay ≥ 2% wide; larger ones shrink to fit
+```
+
+#### Empty & loading states
+
+```php
+->placeholder('No data yet')   // Filament's standard placeholder, shown next to an empty track
+->skeleton()                   // pulsing skeleton bar while segments are empty
+```
+
+#### Accessibility
+
+- The bar exposes a single screen-reader summary ("Translated: 70%, Needs Review: 20%, …")
+  instead of a soup of unlabeled colored boxes.
+- Segments with tooltips are keyboard-focusable (`tabindex="0"`) with matching `aria-label`s,
+  so the tooltip is reachable without a mouse; purely decorative segments are `aria-hidden`.
+- Clickable segments are real `<a>` elements with descriptive labels.
+- Segment shades are chosen for WCAG AA non-text contrast against the track in both themes.
+- All animations are disabled under `prefers-reduced-motion: reduce`.
+
+#### Performance
+
+All normalization, color resolution, and tooltip generation happens once per cell in
+`getProgressData()`; the Blade view only prints precomputed values. Filament caches resolved
+color classes per palette, so tables with thousands of rows do no repeated color math. The
+column's stylesheet is registered through `FilamentAsset` and works in any panel without a
+custom theme.
 
 ## Testing
 

@@ -17,7 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [8.4, 8.3, 8.2]
+        # PHP 8.2 is excluded: Filament v5 requires Livewire v4, and
+        # pestphp/pest-plugin-livewire v4 requires PHP >= 8.3, so the dev
+        # dependencies cannot resolve on PHP 8.2.
+        php: [8.4, 8.3]
         laravel: [13.*, 12.*, 11.*]
         stability: [prefer-stable]
         include:
@@ -27,9 +30,6 @@ jobs:
             testbench: 10.*
           - laravel: 11.*
             testbench: 9.*
-        exclude:
-          - laravel: 13.*
-            php: 8.2
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
