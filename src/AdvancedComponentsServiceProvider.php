@@ -101,8 +101,8 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     {
         return [
             // AlpineComponent::make('filament-advanced-components', __DIR__ . '/../resources/dist/components/filament-advanced-components.js'),
-            // Css::make('filament-advanced-components-styles', __DIR__ . '/../resources/dist/filament-advanced-components.css'),
             // Js::make('filament-advanced-components-scripts', __DIR__ . '/../resources/dist/filament-advanced-components.js'),
+            Css::make('multi-progress-column', __DIR__ . '/../resources/css/multi-progress-column.css'),
         ];
     }
 
