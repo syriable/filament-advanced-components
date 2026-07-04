@@ -12,6 +12,8 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Rendering\OptionRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
@@ -71,6 +73,10 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         $this->app->singleton(MasksText::class, TextMasker::class);
         $this->app->singleton(GeneratesLinks::class, LinkGenerator::class);
         $this->app->singleton(RendersBadges::class, BadgeRenderer::class);
+
+        // The AdvancedSelect option renderer. Rebind this to customize the
+        // per-option markup globally without subclassing the component.
+        $this->app->singleton(RendersOptions::class, OptionRenderer::class);
     }
 
     public function packageBooted(): void
@@ -114,6 +120,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     {
         return [
             AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
+            Css::make('advanced-select', __DIR__ . '/../resources/css/advanced-select.css'),
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
