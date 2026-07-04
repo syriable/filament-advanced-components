@@ -858,6 +858,7 @@ option itself), so nothing is evaluated until render time.
 | `icon()` / `iconColor()` | A leading icon and its color. |
 | `color()` | Tints the label; inherited by the badge. |
 | `badge($label, $color = null)` / `badgeColor()` | A trailing badge. |
+| `badgeAlign('start' \| 'end')` | Badge position on the label line — next to the label (default) or the far end. |
 | `disabled()` | Render the option but block selection. |
 | `visible()` / `hidden()` | Conditionally include the option. |
 | `group()` | Place the option under an optgroup heading. |
@@ -972,10 +973,25 @@ and badge together, and the description — when present — drops onto its own 
         Description line
 ```
 
-So the badge always hugs the label, and a description can appear or disappear without shifting the
-icon, label, or badge. The selected value (and each multi-select chip) uses the compact single
-line — icon, label, badge — and never shows the description. Restyle any of it through
-`advanced-select.css`, a decorator, or a custom renderer (below).
+By default the badge hugs the label; push it to the far end of the row with `badgeAlign('end')`
+(or the `BadgeAlignment` enum):
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Enums\BadgeAlignment;
+
+SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign('end');
+SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign(BadgeAlignment::End);
+```
+
+```
+badgeAlign('start')          badgeAlign('end')
+[icon]  Label [Badge]        [icon]  Label        [Badge]
+```
+
+A description can appear or disappear without shifting the icon, label, or badge. The selected
+value (and each multi-select chip) uses the compact single line — icon, label, badge — and never
+shows the description. Restyle any of it through `advanced-select.css`, a decorator, or a custom
+renderer (below).
 
 #### Presets
 

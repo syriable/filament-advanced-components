@@ -95,7 +95,10 @@ class OptionRenderer implements RendersOptions
             return '';
         }
 
-        $attributes = (new ComponentAttributeBag)->class(['fi-adv-select-option-badge']);
+        $attributes = (new ComponentAttributeBag)->class([
+            'fi-adv-select-option-badge',
+            'fi-adv-select-option-badge-end' => $option->badgeAtEnd(),
+        ]);
 
         if (is_string($option->badgeColor)) {
             $attributes = $attributes->style([

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Enums\BadgeAlignment;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\OptionViewModel;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOption;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOptionCollection;
@@ -650,6 +651,64 @@ it('renders a badge from an enum implementing the HasBadge contract', function (
         ->and($options['pro'])->toContain('var(--color-success-600)')
         // A null badge simply omits it.
         ->and($options['free'])->not->toContain('fi-adv-select-option-badge');
+});
+
+// ---------------------------------------------------------------------------
+// Badge alignment
+// ---------------------------------------------------------------------------
+
+it('aligns the badge next to the label by default', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->badge('Popular'),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('fi-adv-select-option-badge')
+        ->and($html)->not->toContain('fi-adv-select-option-badge-end');
+});
+
+it('pushes the badge to the far end via a string', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign('end'),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('fi-adv-select-option-badge-end');
+});
+
+it('pushes the badge to the far end via the BadgeAlignment enum', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign(BadgeAlignment::End),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('fi-adv-select-option-badge-end');
+});
+
+it('evaluates badgeAlign lazily', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('plan')->options([
+            SelectOption::make('pro', 'Pro')
+                ->badge('Popular')
+                ->badgeAlign(fn (Contact $record): string => $record->name === 'end-user' ? 'end' : 'start'),
+        ]),
+        (new Contact)->forceFill(['id' => 1, 'name' => 'end-user']),
+    );
+
+    expect($select->getOptions()['pro'])->toContain('fi-adv-select-option-badge-end');
+});
+
+it('falls back to start alignment for an unknown value', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign('sideways'),
+    ]))->getOptions()['pro'];
+
+    expect($html)->not->toContain('fi-adv-select-option-badge-end');
+});
+
+it('carries badge alignment into the compact selected label', function () {
+    $label = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign('end'),
+    ]))->buildSelectedLabel('pro');
+
+    expect($label)->toContain('fi-adv-select-option-badge-end');
 });
 
 // ---------------------------------------------------------------------------

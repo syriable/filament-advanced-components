@@ -18,6 +18,7 @@ use Illuminate\Support\Traits\Conditionable;
 use Illuminate\View\ComponentAttributeBag;
 use InvalidArgumentException;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Enums\BadgeAlignment;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
 use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedSelect;
 use UnitEnum;
@@ -81,6 +82,8 @@ class SelectOption
      * @var string | array<int | string, string | int> | Closure | null
      */
     protected string | array | Closure | null $badgeColor = null;
+
+    protected BadgeAlignment | string | Closure $badgeAlignment = BadgeAlignment::Start;
 
     protected bool | Closure $isDisabled = false;
 
@@ -286,6 +289,23 @@ class SelectOption
     }
 
     /**
+     * Where the badge sits on the label line: `start` (right after the label,
+     * the default) or `end` (pushed to the far end of the row). Accepts the
+     * {@see BadgeAlignment} enum, its string value, or a closure.
+     *
+     * ```php
+     * SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign('end');
+     * SelectOption::make('pro', 'Pro')->badge('Popular')->badgeAlign(BadgeAlignment::End);
+     * ```
+     */
+    public function badgeAlign(BadgeAlignment | string | Closure $alignment): static
+    {
+        $this->badgeAlignment = $alignment;
+
+        return $this;
+    }
+
+    /**
      * Render the option but prevent it from being selected.
      */
     public function disabled(bool | Closure $condition = true): static
@@ -413,6 +433,7 @@ class SelectOption
             color: $color,
             badgeLabel: $badgeLabel,
             badgeColor: $evaluate($this->badgeColor) ?? $color,
+            badgeAlign: BadgeAlignment::fromValue($evaluate($this->badgeAlignment)),
             isDisabled: (bool) $evaluate($this->isDisabled),
             group: $this->resolveText($evaluate($this->group)),
             extraClasses: $this->resolveClasses($evaluate),
