@@ -20,6 +20,13 @@ use function Filament\Support\generate_href_html;
  * for table-scale performance. Clickable badges render as real anchors, or
  * receive button semantics (`role`, `tabindex`, Enter/Space activation) so
  * they stay keyboard-accessible.
+ *
+ * When a badge is nested inside a cell-level `<a>`/`<button>` (a column
+ * `url()`/`action()` or a table `recordUrl`/`recordAction`), an interactive
+ * badge must not be a real `<a>`/`<button>`: the HTML parser forbids nesting
+ * them and would tear the markup apart, dropping the badge. In that context
+ * a URL badge renders as a scripted `role="link"` `<span>` that navigates on
+ * click while stopping the event from reaching the wrapper.
  */
 class BadgeRenderer implements RendersBadges
 {
@@ -43,13 +50,21 @@ class BadgeRenderer implements RendersBadges
 
         array_push($classes, ...$badge->classes);
 
-        $isAnchor = $badge->url !== null;
+        // A real anchor is only safe when the badge is not nested inside
+        // another interactive element.
+        $isAnchor = ($badge->url !== null) && (! $badge->isNestedInInteractiveElement);
         $tag = $isAnchor ? 'a' : 'span';
 
         $html = '<' . $tag;
 
         if ($isAnchor) {
             $html .= ' ' . generate_href_html($badge->url, $badge->shouldOpenUrlInNewTab)->toHtml();
+        } elseif (($badge->url !== null) && $badge->isNestedInInteractiveElement) {
+            // Nested link: navigate via script, and stop the click from
+            // activating the surrounding cell link.
+            $html .= ' role="link" tabindex="0"';
+            $html .= ' x-on:click.stop.prevent="' . e($this->generateNavigationExpression($badge)) . '"';
+            $html .= ' x-on:keydown.enter.stop.prevent="' . e($this->generateNavigationExpression($badge)) . '"';
         } elseif ($badge->isClickable) {
             // Not a link, but interactive: give it button semantics and
             // keyboard activation.
@@ -118,5 +133,18 @@ class BadgeRenderer implements RendersBadges
         }
 
         return '<span class="fi-adv-badges">' . $html . '</span>';
+    }
+
+    /**
+     * The Alpine expression that navigates a nested link badge — a new tab
+     * via `window.open`, or the current tab via `window.location`.
+     */
+    protected function generateNavigationExpression(BadgeViewModel $badge): string
+    {
+        $url = Js::from($badge->url)->toHtml();
+
+        return $badge->shouldOpenUrlInNewTab
+            ? "window.open({$url}, '_blank')"
+            : "window.location.href = {$url}";
     }
 }

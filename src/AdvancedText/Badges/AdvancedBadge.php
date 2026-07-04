@@ -456,8 +456,14 @@ class AdvancedBadge
      * Resolve the badge against the owning component's evaluation context
      * into a render-ready view model — or `null` when the badge is hidden,
      * unauthorized, or has an empty label.
+     *
+     * `$isNestedInInteractiveElement` signals that the badge ends up inside
+     * a cell-level `<a>` or `<button>`, where nesting another interactive
+     * element is invalid HTML: click handlers then get `prevent`/`stop`
+     * modifiers, and the renderer swaps anchors for scripted `role="link"`
+     * elements.
      */
-    public function resolve(ViewComponent $component): ?BadgeViewModel
+    public function resolve(ViewComponent $component, bool $isNestedInInteractiveElement = false): ?BadgeViewModel
     {
         $evaluate = fn (mixed $value): mixed => $component->evaluate($value, ['badge' => $this]);
 
@@ -495,11 +501,13 @@ class AdvancedBadge
         $extraAttributes = $evaluate($this->extraAttributes) ?? [];
 
         if (filled($wireClick)) {
-            $extraAttributes['wire:click'] = $wireClick;
+            // Inside a linked cell, the click must neither bubble to the
+            // wrapper nor trigger its navigation.
+            $extraAttributes[$isNestedInInteractiveElement ? 'wire:click.prevent.stop' : 'wire:click'] = $wireClick;
         }
 
         if (filled($alpineClick)) {
-            $extraAttributes['x-on:click'] = $alpineClick;
+            $extraAttributes[$isNestedInInteractiveElement ? 'x-on:click.stop.prevent' : 'x-on:click'] = $alpineClick;
         }
 
         return new BadgeViewModel(
@@ -515,6 +523,7 @@ class AdvancedBadge
             url: filled($url) ? (string) $url : null,
             shouldOpenUrlInNewTab: (bool) $evaluate($this->shouldOpenUrlInNewTab),
             isClickable: filled($url) || filled($wireClick) || filled($alpineClick),
+            isNestedInInteractiveElement: $isNestedInInteractiveElement,
         );
     }
 

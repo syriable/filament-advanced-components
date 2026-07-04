@@ -564,6 +564,15 @@ The full builder API:
   classes.
 - **Tooltips** — `tooltip()` uses Filament's tippy integration.
 
+> [!NOTE]
+> When the column itself is a link — via the column's `url()` / `action()`, or the table's
+> `recordUrl` / `recordAction` — Filament wraps the whole cell in an `<a>` / `<button>`.
+> Because an anchor cannot be nested inside another anchor (the browser would tear the markup
+> apart and drop the badge), an interactive badge in that context automatically degrades to a
+> keyboard-accessible `role="link"` element that navigates via script and stops the click from
+> also triggering the surrounding cell link. Non-interactive badges are unaffected, and the
+> behavior is transparent — you configure `url()` / `wireClick()` the same way regardless.
+
 Extensibility mirrors the rest of the package: subclass `AdvancedBadge`, add macros
 (`AdvancedBadge::macro()`), register reusable presets —
 

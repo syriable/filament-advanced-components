@@ -44,12 +44,12 @@ class BadgeCollection extends Collection
      *
      * @return array<BadgeViewModel>
      */
-    public function resolveFor(ViewComponent $component): array
+    public function resolveFor(ViewComponent $component, bool $isNestedInInteractiveElement = false): array
     {
         $viewModels = [];
 
         foreach ($this->all() as $badge) {
-            if ($viewModel = $badge->resolve($component)) {
+            if ($viewModel = $badge->resolve($component, $isNestedInInteractiveElement)) {
                 $viewModels[] = $viewModel;
             }
         }

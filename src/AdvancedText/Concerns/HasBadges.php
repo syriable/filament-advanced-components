@@ -59,7 +59,23 @@ trait HasBadges
      */
     public function getAdvancedBadgeViewModels(): array
     {
-        return $this->getAdvancedBadges()->resolveFor($this);
+        return $this->getAdvancedBadges()->resolveFor(
+            $this,
+            $this->areAdvancedBadgesNestedInInteractiveElement(),
+        );
+    }
+
+    /**
+     * Whether the badges end up inside an interactive wrapper element (a
+     * cell-level `<a>` or `<button>`). Anchors and buttons cannot be nested
+     * in HTML — the browser's parser would tear the markup apart — so
+     * interactive badges degrade to accessible `role` elements with script
+     * handlers in that context. Overridden per component where a wrapper
+     * can exist.
+     */
+    protected function areAdvancedBadgesNestedInInteractiveElement(): bool
+    {
+        return false;
     }
 
     protected function generateAdvancedBadgesHtml(): string
