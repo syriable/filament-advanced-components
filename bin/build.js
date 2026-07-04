@@ -50,3 +50,11 @@ compile({
 }).then(() => {
     console.log(`Build completed for filament-advanced-components.js`)
 })
+
+compile({
+    ...defaultOptions,
+    entryPoints: ['./resources/js/components/package-comparison.js'],
+    outfile: './resources/dist/components/package-comparison.js',
+}).then(() => {
+    console.log(`Build completed for components/package-comparison.js`)
+})

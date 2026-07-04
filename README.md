@@ -361,6 +361,123 @@ the segments animate to their new widths.
 > ->poll(fn (): ?string => TranslationRun::active()->exists() ? '3s' : null)
 > ```
 
+### PackageComparison
+
+A Fiverr-style package comparison editor as a real Filament form field. Columns are
+**packages** (add, remove, rename, drag to reorder), rows are **features** with a type,
+and every cell is the value of one feature for one package. The whole table is a single
+JSON state on your model — no extra tables, no repeaters.
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\PackageComparison;
+use Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\BooleanRow;
+use Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\DeliveryRow;
+use Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\DescriptionRow;
+use Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\NumberRow;
+use Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\PriceRow;
+
+PackageComparison::make('packages')
+    ->minPackages(1)
+    ->maxPackages(6)
+    ->defaultPackages(3)
+    ->allowPackageReordering()
+    ->allowFeatureReordering()
+    ->allowedRowTypes([
+        DescriptionRow::class,
+        BooleanRow::class,
+        NumberRow::class,
+        PriceRow::class,
+        DeliveryRow::class,
+    ])
+    ->defaultRows([
+        ['label' => 'Description', 'type' => 'description'],
+        ['label' => 'Price', 'type' => 'price', 'config' => ['currency' => 'EUR']],
+        ['label' => 'Delivery', 'type' => 'delivery'],
+    ])
+    ->collapsible()
+```
+
+Cast the attribute to `array` (or use a JSON column) and the field stores:
+
+```json
+{
+    "packages": [
+        {"id": "9c2e…", "title": "Starter", "meta": {}}
+    ],
+    "rows": [
+        {"id": "d7f3…", "label": "Responsive Design", "type": "boolean",
+         "config": {}, "values": {"9c2e…": true}}
+    ]
+}
+```
+
+UUIDs identify packages and rows, so reordering is pure array order and cell values
+survive renames. Every configuration option accepts a `Closure`, exactly like native
+Filament fields.
+
+#### How it behaves
+
+- **All interactivity is client-side.** The table is stamped by Alpine from the
+  Livewire-entangled state; adding, removing, renaming, reordering (drag & drop via
+  Filament's own sortable plugin) and cell edits fire **zero requests** until the form
+  submits — or sync live if you chain `->live()`.
+- **The server never trusts the browser.** On hydration *and* dehydration the payload is
+  re-normalized: unknown row types are dropped, orphaned cell values pruned, per-type
+  config whitelisted, every cell value coerced through its row type, and
+  `minPackages()` / `maxPackages()` are enforced as validation rules.
+- **UX**: sticky feature column, horizontal scrolling as packages grow, inline renames,
+  a per-row settings popover (options for select/radio rows, currency for price rows),
+  collapsible editor, full dark-mode styling, keyboard-accessible controls.
+
+#### Built-in row types
+
+| Type | Cell editor | Per-row settings |
+| --- | --- | --- |
+| `boolean` | Checkmark | — |
+| `text` / `textarea` / `description` | Text input / textarea | — |
+| `number` | Number input | — |
+| `price` | Number input with currency prefix | Currency |
+| `select` / `radio` | Dropdown / radio group | Options list |
+| `delivery` | Amount + unit (`{"amount": 7, "unit": "days"}`) | — |
+| `footer` | Per-package call-to-action line | — |
+
+#### Custom row types
+
+Row types follow a Strategy pattern: subclass
+`Syriable\Filament\Plugins\AdvancedComponents\PackageComparison\RowTypes\RowType`,
+point `getCellView()` at a Blade view containing a
+`<template x-if="row.type === 'rating'">` block, and register the class — the type
+picker, cell rendering, client-side seeding, and server-side coercion all follow
+automatically, without touching any package code:
+
+```php
+class RatingRow extends RowType
+{
+    public function getName(): string
+    {
+        return 'rating';
+    }
+
+    public function getDefaultValue(): mixed
+    {
+        return 0;
+    }
+
+    public function normalizeValue(mixed $value, array $config): mixed
+    {
+        return is_numeric($value) ? max(0, min(5, (int) $value)) : 0;
+    }
+
+    public function getCellView(): string
+    {
+        return 'forms.cells.rating'; // your own view, any namespace
+    }
+}
+```
+
+Inside the cell view you get the Alpine scope `row`, `pkg`, and the entangled state —
+bind with `x-model="row.values[pkg.id]"` and you're done.
+
 ## Testing
 
 ```bash

@@ -5,7 +5,6 @@ namespace Syriable\Filament\Plugins\AdvancedComponents;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
-use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
@@ -31,7 +30,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
          */
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
-            ->hasInstallCommand(function (InstallCommand $command) {
+            ->hasInstallCommand(function (InstallCommand $command): void {
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
@@ -100,9 +99,9 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('filament-advanced-components', __DIR__ . '/../resources/dist/components/filament-advanced-components.js'),
-            // Js::make('filament-advanced-components-scripts', __DIR__ . '/../resources/dist/filament-advanced-components.js'),
+            AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
+            Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
         ];
     }
 

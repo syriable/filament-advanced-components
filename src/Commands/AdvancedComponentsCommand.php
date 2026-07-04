@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Syriable\Filament\Plugins\AdvancedComponents\Commands;
 
 use Illuminate\Console\Command;
