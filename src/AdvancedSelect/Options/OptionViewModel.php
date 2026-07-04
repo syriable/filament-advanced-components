@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options;
 
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Enums\BadgeAlignment;
+
 /**
  * The fully evaluated, render-ready state of one {@see SelectOption}.
  *
@@ -23,6 +25,7 @@ readonly class OptionViewModel
      * @param  string | array<int | string, string | int> | null  $color  Filament color for the label tint and badge.
      * @param  string | null  $badgeLabel  Trailing badge text, or null for no badge.
      * @param  string | array<int | string, string | int> | null  $badgeColor  Badge color; falls back to {@see $color}.
+     * @param  BadgeAlignment  $badgeAlign  Where the badge sits on the label line.
      * @param  bool  $isDisabled  Whether the option is selectable.
      * @param  string | null  $group  Optgroup label, or null for a top-level option.
      * @param  array<string>  $extraClasses  Extra CSS classes on the option element.
@@ -36,11 +39,17 @@ readonly class OptionViewModel
         public string | array | null $color = null,
         public ?string $badgeLabel = null,
         public string | array | null $badgeColor = null,
+        public BadgeAlignment $badgeAlign = BadgeAlignment::Start,
         public bool $isDisabled = false,
         public ?string $group = null,
         public array $extraClasses = [],
         public array $extraAttributes = [],
     ) {}
+
+    public function badgeAtEnd(): bool
+    {
+        return $this->badgeAlign === BadgeAlignment::End;
+    }
 
     public function hasIcon(): bool
     {
