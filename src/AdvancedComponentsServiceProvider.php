@@ -77,7 +77,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
 
         // Handle Stubs
         if (app()->runningInConsole()) {
-            foreach (app(Filesystem::class)->files(__DIR__.'/../stubs/') as $file) {
+            foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
                     $file->getRealPath() => base_path("stubs/filament-advanced-components/{$file->getFilename()}"),
                 ], 'filament-advanced-components-stubs');
@@ -99,9 +99,9 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            AlpineComponent::make('package-comparison', __DIR__.'/../resources/dist/components/package-comparison.js'),
-            Css::make('multi-progress', __DIR__.'/../resources/css/multi-progress.css'),
-            Css::make('package-comparison', __DIR__.'/../resources/css/package-comparison.css'),
+            AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
+            Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
+            Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
         ];
     }
 
