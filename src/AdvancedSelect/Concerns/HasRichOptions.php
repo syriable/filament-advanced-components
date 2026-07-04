@@ -49,7 +49,7 @@ trait HasRichOptions
      * The raw options input, in any shape `Select::options()` accepts, plus
      * lists of {@see SelectOption} objects.
      *
-     * @var array<mixed> | Arrayable<mixed, mixed> | string | Closure | null
+     * @var array<mixed> | Arrayable<array-key, mixed> | string | Closure | null
      */
     protected array | Arrayable | string | Closure | null $rawOptions = null;
 
@@ -84,7 +84,7 @@ trait HasRichOptions
      * any `SelectOption` activates rich rendering; anything else stays fully
      * native unless a parallel map (below) is also set.
      *
-     * @param  array<mixed> | Arrayable<mixed, mixed> | string | Closure | null  $options
+     * @param  array<mixed> | Arrayable<array-key, mixed> | string | Closure | null  $options
      */
     public function options(array | Arrayable | string | Closure | null $options): static
     {
@@ -342,7 +342,9 @@ trait HasRichOptions
             $value = $value->value;
         }
 
-        return ($this->getOptionViewModelIndex()[(string) $value] ?? null)?->isDisabled ?? false;
+        $viewModel = $this->getOptionViewModelIndex()[(string) $value] ?? null;
+
+        return $viewModel !== null && $viewModel->isDisabled;
     }
 
     /**

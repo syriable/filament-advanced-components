@@ -36,7 +36,7 @@ class SelectOptionCollection extends Collection
      * associative array, a `groupLabel => [value => label]` grouped array, or
      * any mixture of these. Plain scalars become label-only options.
      *
-     * @param  iterable<mixed, mixed> | Arrayable<mixed, mixed>  $options
+     * @param  iterable<mixed, mixed> | Arrayable<array-key, mixed>  $options
      */
     public static function normalize(iterable | Arrayable $options): static
     {
