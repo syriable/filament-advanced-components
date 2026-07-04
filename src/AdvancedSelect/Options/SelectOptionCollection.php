@@ -74,6 +74,23 @@ class SelectOptionCollection extends Collection
     }
 
     /**
+     * Build a collection from every case of an enum, honouring Filament's
+     * enum contracts (see {@see SelectOption::fromEnumCase()}).
+     *
+     * @param  class-string<\UnitEnum>  $enum
+     */
+    public static function fromEnum(string $enum): static
+    {
+        $options = [];
+
+        foreach ($enum::cases() as $case) {
+            $options[] = SelectOption::fromEnumCase($case);
+        }
+
+        return new static($options);
+    }
+
+    /**
      * Resolve every option against the owning component, dropping the ones
      * hidden for this render.
      *

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Filament\Schemas\Schema;
 use Filament\Support\Components\ViewComponent;
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasDescription;
+use Filament\Support\Contracts\HasIcon;
+use Filament\Support\Contracts\HasLabel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
@@ -43,6 +47,63 @@ enum FakeStatus: string
 {
     case Draft = 'draft';
     case Published = 'published';
+
+    public function getLabel(): string
+    {
+        return ucfirst($this->value);
+    }
+}
+
+/**
+ * A backed enum implementing the full set of Filament enum contracts, to
+ * exercise automatic rich rendering from an enum.
+ */
+enum RichPriority: string implements HasColor, HasDescription, HasIcon, HasLabel
+{
+    case Low = 'low';
+    case High = 'high';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Low => 'Low priority',
+            self::High => 'High priority',
+        };
+    }
+
+    public function getIcon(): string
+    {
+        return match ($this) {
+            self::Low => 'heroicon-o-arrow-down',
+            self::High => 'heroicon-o-arrow-up',
+        };
+    }
+
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::Low => 'gray',
+            self::High => 'danger',
+        };
+    }
+
+    public function getDescription(): string
+    {
+        return match ($this) {
+            self::Low => 'Can wait',
+            self::High => 'Needs attention now',
+        };
+    }
+}
+
+/**
+ * A label-only enum: the native Select already handles this, so it must stay
+ * native.
+ */
+enum LabelOnlyStatus: string implements HasLabel
+{
+    case Draft = 'draft';
+    case Live = 'live';
 
     public function getLabel(): string
     {
@@ -480,4 +541,78 @@ it('caches resolved options and flushes on reconfiguration', function () {
 
     expect($select->getResolvedOptionViewModels())->not->toBe($first)
         ->and($select->getOptions()['draft'])->toContain('Now with a description');
+});
+
+// ---------------------------------------------------------------------------
+// Enum contracts
+// ---------------------------------------------------------------------------
+
+it('renders an enum implementing the Filament contracts as rich options', function () {
+    $select = mountSelect(AdvancedSelect::make('priority')->options(RichPriority::class));
+
+    $options = $select->getOptions();
+
+    expect($select->hasRichOptions())->toBeTrue()
+        ->and($select->isNative())->toBeFalse()
+        ->and($options)->toHaveKeys(['low', 'high'])
+        ->and($options['high'])->toContain('High priority')
+        ->and($options['high'])->toContain('Needs attention now')
+        ->and($options['high'])->toContain('<svg')
+        ->and($options['high'])->toContain('var(--color-danger-600)')
+        ->and($options['low'])->toContain('Low priority')
+        ->and($options['low'])->toContain('Can wait');
+});
+
+it('keeps a label-only enum fully native', function () {
+    $select = mountSelect(AdvancedSelect::make('status')->options(LabelOnlyStatus::class));
+
+    expect($select->hasRichOptions())->toBeFalse()
+        ->and($select->isNative())->toBeTrue()
+        ->and($select->getOptions())->toBe(['draft' => 'Draft', 'live' => 'Live']);
+});
+
+it('preserves native enum state casting for a rich enum', function () {
+    $select = mountSelect(AdvancedSelect::make('priority')->options(RichPriority::class));
+
+    // The enum must still be registered so selected values hydrate as enum
+    // instances, exactly as on a native Select.
+    expect($select->getEnum())->toBe(RichPriority::class)
+        ->and($select->getEnumDefaultStateCast())->not->toBeNull();
+});
+
+it('renders a compact selected label from an enum instance', function () {
+    $select = mountSelect(AdvancedSelect::make('priority')->options(RichPriority::class));
+
+    $label = $select->buildSelectedLabel(RichPriority::High);
+
+    expect($label)->toContain('High priority')
+        ->and($label)->toContain('<svg')
+        ->and($label)->not->toContain('Needs attention now');
+});
+
+it('lets a parallel map override an enum-provided value', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('priority')
+            ->options(RichPriority::class)
+            ->descriptions(['high' => 'Escalated']),
+    );
+
+    $high = $select->getOptions()['high'];
+
+    // The description is overridden; the enum's icon and color remain.
+    expect($high)->toContain('Escalated')
+        ->and($high)->not->toContain('Needs attention now')
+        ->and($high)->toContain('var(--color-danger-600)');
+});
+
+it('activates rich enum rendering when a parallel map is added to a label-only enum', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('status')
+            ->options(LabelOnlyStatus::class)
+            ->icons(['draft' => 'heroicon-o-pencil-square']),
+    );
+
+    expect($select->hasRichOptions())->toBeTrue()
+        ->and($select->getOptions()['draft'])->toContain('<svg')
+        ->and($select->getOptions()['draft'])->toContain('Draft');
 });

@@ -6,9 +6,11 @@ namespace Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Concerns;
 
 use BackedEnum;
 use Closure;
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasDescription;
+use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Htmlable;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\OptionViewModel;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOption;
@@ -81,8 +83,10 @@ trait HasRichOptions
      * Define the options. Accepts everything the native `Select` does — a
      * `value => label` map, a grouped array, an enum class, a closure — and,
      * additionally, a list of {@see SelectOption} objects (or a mix). Passing
-     * any `SelectOption` activates rich rendering; anything else stays fully
-     * native unless a parallel map (below) is also set.
+     * any `SelectOption`, or an enum whose cases carry an icon, color, or
+     * description (via Filament's {@see HasIcon} / {@see HasColor} /
+     * {@see HasDescription} contracts), activates rich rendering; anything
+     * else stays fully native unless a parallel map (below) is also set.
      *
      * @param  array<mixed> | Arrayable<array-key, mixed> | string | Closure | null  $options
      */
@@ -91,7 +95,14 @@ trait HasRichOptions
         $this->rawOptions = $options;
         $this->flushOptionCache();
 
-        if ($this->richOptionsWired || $this->arrayContainsRichOptions($options)) {
+        // Register the enum for state casting exactly as the native Select
+        // does, so selected values still hydrate/dehydrate as enum instances
+        // whether or not rich rendering is active.
+        if (is_string($options) && enum_exists($options)) {
+            $this->enum($options);
+        }
+
+        if ($this->richOptionsWired || $this->arrayContainsRichOptions($options) || $this->isRichEnum($options)) {
             // Once rich, the native options getter must keep pointing at the
             // rendering closure (which reads the fresh {@see $rawOptions}) —
             // never at the raw array, which would bypass rendering.
@@ -99,8 +110,8 @@ trait HasRichOptions
         } else {
             // Keep the native code path authoritative until (and unless) rich
             // mode is needed, so a plain AdvancedSelect is byte-for-byte a
-            // Select — this also leaves `relationship()` and enum options
-            // fully native.
+            // Select — this also leaves `relationship()`, label-only enums,
+            // and plain option arrays fully native.
             parent::options($options);
         }
 
@@ -293,11 +304,7 @@ trait HasRichOptions
 
     public function buildSelectedLabel(mixed $value): ?string
     {
-        if ($value instanceof BackedEnum) {
-            $value = $value->value;
-        }
-
-        $viewModel = $this->getOptionViewModelIndex()[(string) $value] ?? null;
+        $viewModel = $this->getOptionViewModelIndex()[$this->stringifyStateValue($value)] ?? null;
 
         if ($viewModel === null) {
             return null;
@@ -319,11 +326,7 @@ trait HasRichOptions
         $labels = [];
 
         foreach ((array) ($values ?? []) as $value) {
-            if ($value instanceof BackedEnum) {
-                $value = $value->value;
-            }
-
-            $value = (string) $value;
+            $value = $this->stringifyStateValue($value);
 
             if ($viewModel = $index[$value] ?? null) {
                 $labels[$value] = $this->applySelectedLabelDecorators(
@@ -338,13 +341,26 @@ trait HasRichOptions
 
     public function isResolvedOptionDisabled(mixed $value): bool
     {
-        if ($value instanceof BackedEnum) {
-            $value = $value->value;
-        }
-
-        $viewModel = $this->getOptionViewModelIndex()[(string) $value] ?? null;
+        $viewModel = $this->getOptionViewModelIndex()[$this->stringifyStateValue($value)] ?? null;
 
         return $viewModel !== null && $viewModel->isDisabled;
+    }
+
+    /**
+     * Reduce a state value to the string key options are indexed by, handling
+     * both backed and pure enum instances the way Filament stores them.
+     */
+    protected function stringifyStateValue(mixed $value): string
+    {
+        if ($value instanceof BackedEnum) {
+            return (string) $value->value;
+        }
+
+        if ($value instanceof UnitEnum) {
+            return $value->name;
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -379,7 +395,7 @@ trait HasRichOptions
 
     /**
      * Normalize the raw options into {@see SelectOption} objects and augment
-     * the implicit (scalar-pair) ones with the parallel maps.
+     * the implicit ones with the parallel maps.
      */
     protected function resolveOptionCollection(): SelectOptionCollection
     {
@@ -392,8 +408,10 @@ trait HasRichOptions
 
     /**
      * Evaluate {@see $rawOptions} the same way the native `Select` evaluates
-     * its own — closures run, enums expand, `Arrayable` flattens — without
-     * routing back through the (now overridden) options getter.
+     * its own — closures run, `Arrayable` flattens — without routing back
+     * through the (now overridden) options getter. An enum is expanded into a
+     * list of {@see SelectOption} objects via its Filament contracts, so it
+     * flows through {@see SelectOptionCollection::normalize()} like any other.
      *
      * @return array<mixed>
      */
@@ -402,7 +420,7 @@ trait HasRichOptions
         $options = $this->evaluate($this->rawOptions) ?? $this->getEnum() ?? [];
 
         if (is_string($options) && enum_exists($options)) {
-            return $this->expandEnumOptions($options);
+            return SelectOptionCollection::fromEnum($options)->all();
         }
 
         if ($options instanceof Arrayable) {
@@ -413,25 +431,20 @@ trait HasRichOptions
     }
 
     /**
-     * Expand an enum class into a `value => label` map, honouring Filament's
-     * {@see HasLabel} contract exactly as the native `Select` does.
-     *
-     * @param  class-string<UnitEnum>  $enum
-     * @return array<string, string | Htmlable>
+     * Whether the given options input is an enum whose cases carry rendering
+     * information beyond a label — an icon, color, or description — and so
+     * warrant rich rendering. A label-only ({@see HasLabel}) or plain enum
+     * stays native, since the native `Select` already renders those.
      */
-    protected function expandEnumOptions(string $enum): array
+    protected function isRichEnum(mixed $options): bool
     {
-        $options = [];
-
-        foreach ($enum::cases() as $case) {
-            $value = $case instanceof BackedEnum ? (string) $case->value : $case->name;
-
-            $options[$value] = $case instanceof HasLabel
-                ? ($case->getLabel() ?? $case->name)
-                : $case->name;
+        if (! is_string($options) || ! enum_exists($options)) {
+            return false;
         }
 
-        return $options;
+        return is_a($options, HasIcon::class, allow_string: true)
+            || is_a($options, HasColor::class, allow_string: true)
+            || is_a($options, HasDescription::class, allow_string: true);
     }
 
     protected function applyOptionMaps(SelectOptionCollection $collection): void
