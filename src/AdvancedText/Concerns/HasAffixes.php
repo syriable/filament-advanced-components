@@ -34,6 +34,8 @@ trait HasAffixes
 
     protected string | Closure | null $imageBorderRadius = null;
 
+    protected string | Closure | null $imageFit = null;
+
     protected bool | Closure $isImageCircular = false;
 
     protected string | BackedEnum | Closure | null $prefixIcon = null;
@@ -99,6 +101,17 @@ trait HasAffixes
     public function imageRounded(int | string | Closure $radius = '0.375rem'): static
     {
         $this->imageBorderRadius = is_int($radius) ? "{$radius}px" : $radius;
+
+        return $this;
+    }
+
+    /**
+     * How the image fills its box — any CSS `object-fit` value (`contain`,
+     * `cover`, `fill`, `none`, `scale-down`). Defaults to `contain`.
+     */
+    public function imageFit(string | Closure | null $fit): static
+    {
+        $this->imageFit = $fit;
 
         return $this;
     }
@@ -190,6 +203,13 @@ trait HasAffixes
         $size = $this->evaluate($this->imageSize);
 
         return is_int($size) ? "{$size}px" : (string) $size;
+    }
+
+    public function getImageFit(): ?string
+    {
+        $fit = $this->evaluate($this->imageFit);
+
+        return filled($fit) ? (string) $fit : null;
     }
 
     public function getImageBorderRadius(): ?string

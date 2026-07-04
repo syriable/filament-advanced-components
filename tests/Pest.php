@@ -1,9 +1,12 @@
 <?php
 
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
 use Livewire\Livewire;
+use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\AdvancedTextEntry;
 use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\ColumnHostComponent;
 use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\Contact;
+use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\SchemaLivewireComponent;
 use Syriable\Filament\Plugins\AdvancedComponents\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);
@@ -32,4 +35,14 @@ function mountColumn(Column $column, array $recordAttributes = []): Column
 function renderCell(Column $column, array $recordAttributes = []): string
 {
     return mountColumn($column, $recordAttributes)->toEmbeddedHtml();
+}
+
+/**
+ * Render an infolist entry's embedded HTML inside a minimal schema container.
+ */
+function renderEntry(AdvancedTextEntry $entry): string
+{
+    return $entry
+        ->container(Schema::make(new SchemaLivewireComponent))
+        ->toEmbeddedHtml();
 }
