@@ -787,6 +787,185 @@ class RatingRow extends RowType
 Inside the cell view you get the Alpine scope `row`, `pkg`, and the entangled state —
 bind with `x-model="row.values[pkg.id]"` and you're done.
 
+### AdvancedSelect
+
+A drop-in superset of Filament's `Select` that renders **rich options** — a leading icon, a
+secondary description line, a Filament color, and a trailing badge — for each option, with lazy
+evaluation on every value.
+
+```
+┌─────────────────────────────────────────────┐
+│  🌐  Published                         Live  │
+│      Visible to everyone                     │
+├─────────────────────────────────────────────┤
+│  ✏️  Draft                                    │
+│      Only visible to you                     │
+└─────────────────────────────────────────────┘
+```
+
+**What it looks like:**
+
+- *Dropdown:* each row shows an icon on the left, the label with an optional smaller,
+  muted description underneath, and an optional badge pushed to the right edge. The label
+  can be tinted with any Filament color.
+- *Selected value:* a compact version — icon, label, and badge, without the description — so
+  the control never grows taller than a native one. Multi-select chips use the same compact form.
+- *Everything else is native:* search, `multiple()`, relationships, validation, create/edit
+  option actions, and Livewire reactivity all behave exactly as they do on `Select`, because
+  `AdvancedSelect` **extends** it and only layers rendering on top.
+
+Because a plain `AdvancedSelect` (with a `value => label` array) is byte-for-byte a `Select`,
+you can rename `Select` to `AdvancedSelect` in an existing form with zero behavior change and
+opt into richness one option at a time.
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedSelect;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOption;
+
+AdvancedSelect::make('status')
+    ->placeholder('Select a status')
+    ->searchable()
+    ->options([
+        SelectOption::make('draft', 'Draft')
+            ->icon('heroicon-o-pencil-square')
+            ->description('Only visible to you')
+            ->color('gray'),
+        SelectOption::make('published', 'Published')
+            ->icon('heroicon-o-globe-alt')
+            ->description('Visible to everyone')
+            ->color('success')
+            ->badge('Live'),
+        SelectOption::make('archived', 'Archived')
+            ->icon('heroicon-o-archive-box')
+            ->color('warning')
+            ->disabled(fn (?Post $record): bool => $record?->is_locked ?? false),
+    ]);
+```
+
+#### The option builder
+
+Every `SelectOption` setter accepts a static value **or** a closure with the field's usual
+`$state`, `$get`, `$record`, `$livewire`, and `$component` injections (plus `$option`, the
+option itself), so nothing is evaluated until render time.
+
+| Method | Purpose |
+| --- | --- |
+| `make($value, $label = null)` | The value stored in state and its label (defaults to the value). |
+| `label()` / `translateLabel()` | Set / translate the label. |
+| `description()` | A muted secondary line under the label. |
+| `icon()` / `iconColor()` | A leading icon and its color. |
+| `color()` | Tints the label; inherited by the badge. |
+| `badge($label, $color = null)` / `badgeColor()` | A trailing badge. |
+| `disabled()` | Render the option but block selection. |
+| `visible()` / `hidden()` | Conditionally include the option. |
+| `group()` | Place the option under an optgroup heading. |
+| `classes()` / `extraAttributes()` | Extra CSS classes / HTML attributes on the option element. |
+
+Colors accept a semantic Filament name (`success`, `danger`, …), a `Color` palette array, or any
+literal CSS color.
+
+#### Layering richness onto a plain list
+
+If you already have a `value => label` array (from an enum, a config, a query), keep it and add
+the extras through parallel maps — no need to rewrite it into objects:
+
+```php
+AdvancedSelect::make('status')
+    ->options(['draft' => 'Draft', 'published' => 'Published'])
+    ->icons(['draft' => 'heroicon-o-pencil-square', 'published' => 'heroicon-o-globe-alt'])
+    ->descriptions(['draft' => 'Only visible to you'])
+    ->optionColors(['published' => 'success'])
+    ->optionBadges(['published' => 'Live']);
+```
+
+Enums with the `HasLabel` contract expand automatically, and the maps still apply:
+
+```php
+AdvancedSelect::make('status')
+    ->options(PostStatus::class)
+    ->icons(['draft' => 'heroicon-o-pencil-square']);
+```
+
+The maps only touch options generated from a plain pair; explicitly authored `SelectOption`
+objects always win. Anything you pass as a **closure** (a dynamic list, `relationship()`) stays
+fully native — express lazy rich options with per-property closures on a static list instead.
+
+#### Groups
+
+Give options a `group()` and they render inside native optgroups:
+
+```php
+AdvancedSelect::make('assignee')->options([
+    SelectOption::make('me', 'Me')->group('You'),
+    SelectOption::make('alex', 'Alex')->group('Team'),
+    SelectOption::make('sam', 'Sam')->group('Team'),
+]);
+```
+
+#### Presets
+
+Name a reusable bundle of configuration once and apply it anywhere — at the option level or the
+component level:
+
+```php
+SelectOption::registerPreset('archived', fn (SelectOption $o) => $o
+    ->icon('heroicon-o-archive-box')->color('gray')->badge('Archived')->disabled());
+
+AdvancedSelect::registerPreset('post-status', fn (AdvancedSelect $s) => $s
+    ->searchable()
+    ->options(PostStatus::options()));
+
+AdvancedSelect::make('status')->preset('post-status');
+```
+
+#### Extending
+
+The rendering pipeline is `raw config → evaluate → resolve (view models) → decorate → render`,
+and every stage is replaceable without touching the component.
+
+- **Decorators** — wrap the rendered HTML for a one-off tweak:
+
+  ```php
+  AdvancedSelect::make('status')
+      ->options([...])
+      ->decorateOptionUsing(fn (string $html): string => "<div class=\"px-1\">{$html}</div>")
+      ->decorateSelectedLabelUsing(fn (string $html): string => "<span class=\"font-medium\">{$html}</span>");
+  ```
+
+- **Custom renderer** — swap the markup wholesale by implementing `RendersOptions`. Bind it
+  globally in a service provider…
+
+  ```php
+  use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
+
+  $this->app->bind(RendersOptions::class, MyOptionRenderer::class);
+  ```
+
+  …or per-field with `->renderOptionsUsing(new MyOptionRenderer())`. Subclass the default
+  `OptionRenderer` to override just `renderOption()` or `renderSelectedLabel()`.
+
+- **Macros** — both `SelectOption` and `AdvancedSelect` are `Macroable`.
+
+Each resolved option becomes an immutable `OptionViewModel`; the renderer only ever assembles
+markup from that value object, so evaluation and rendering stay independent and testable.
+
+#### Performance
+
+Options are evaluated once per component and the resulting view models are memoized, then reused
+across the dropdown, the selected-label lookup, the disabled check, and search within the same
+request — so a form with many `AdvancedSelect`s does no duplicate work. Call `flushOptionCache()`
+if you mutate configuration after a first render. Rich mode stays entirely dormant (no HTML, no
+JS select, no allocation) until you actually use a rich feature.
+
+#### Accessibility & security
+
+The rich markup renders through Filament's `allowHtml()` path, which `AdvancedSelect` enables for
+you only when rich options are active. Labels, descriptions, and badge text are always escaped;
+only trusted, developer-authored icon SVGs are emitted raw — never pass unsanitised user input as
+option HTML.
+
 ## Testing
 
 ```bash
