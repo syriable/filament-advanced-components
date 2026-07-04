@@ -12,6 +12,10 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\LinkGenerator;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\TextMasker;
 use Syriable\Filament\Plugins\AdvancedComponents\Commands\AdvancedComponentsCommand;
 use Syriable\Filament\Plugins\AdvancedComponents\Testing\TestsAdvancedComponents;
 
@@ -57,7 +61,14 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+        // Contract bindings for the AdvancedTextColumn services. Rebind
+        // these in a service provider to customize masking or link
+        // generation globally.
+        $this->app->singleton(MasksText::class, TextMasker::class);
+        $this->app->singleton(GeneratesLinks::class, LinkGenerator::class);
+    }
 
     public function packageBooted(): void
     {
@@ -100,6 +111,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     {
         return [
             AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
+            Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
         ];
