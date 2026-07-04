@@ -8,6 +8,7 @@ use Closure;
 use Filament\Tables\Columns\Column;
 use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\MultiProgressEntry;
 use Syriable\Filament\Plugins\AdvancedComponents\MultiProgress\Concerns\HasMultiProgressBar;
+use Throwable;
 
 /**
  * A table column that renders a single progress bar divided into multiple
@@ -37,15 +38,6 @@ class MultiProgressColumn extends Column
 
     protected string $view = 'filament-advanced-components::components.multi-progress';
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // A progress bar has no meaningful text state, so opt out of the
-        // default "state description" behavior and keep the cell read-only.
-        $this->disabledClick();
-    }
-
     /**
      * Alias of {@see HasMultiProgressBar::segmentGap()}. Columns can afford
      * the short name; infolist entries cannot, because they inherit
@@ -54,5 +46,37 @@ class MultiProgressColumn extends Column
     public function gap(int | Closure $pixels): static
     {
         return $this->segmentGap($pixels);
+    }
+
+    /**
+     * Filament wraps a table cell in an `<a>`/`<button>` when the column has
+     * a (non-state-based) `url()`/`action()`, or the table has a
+     * `recordUrl`/`recordAction`. A clickable segment cannot be a real `<a>`
+     * nested inside that wrapper — the browser would tear the markup apart —
+     * so segments degrade to scripted, accessible `role="link"` elements
+     * when this returns `true`.
+     */
+    public function isNestedInInteractiveElement(): bool
+    {
+        if ($this->isClickDisabled() || $this->hasStateBasedUrls()) {
+            return false;
+        }
+
+        if (filled($this->getUrl()) || filled($this->getAction())) {
+            return true;
+        }
+
+        try {
+            $table = $this->getTable();
+            $record = $this->getRecord();
+        } catch (Throwable) {
+            return false;
+        }
+
+        if ($record === null) {
+            return false;
+        }
+
+        return filled($table->getRecordUrl($record)) || filled($table->getRecordAction($record));
     }
 }

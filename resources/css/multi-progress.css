@@ -75,6 +75,13 @@
     background-color: var(--dark-bg);
 }
 
+/* Link segments — real anchors, or scripted role="link" elements when the
+   bar sits inside an already-linked cell — get a pointer cursor. */
+a.fi-multi-progress-segment,
+.fi-multi-progress-segment[role='link'] {
+    cursor: pointer;
+}
+
 /* Keyboard focus: a visible ring on tooltip segments and links. */
 .fi-multi-progress-segment:focus-visible {
     z-index: 1;
