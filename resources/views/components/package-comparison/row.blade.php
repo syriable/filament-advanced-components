@@ -15,6 +15,7 @@
     role="row"
     x-bind:style="gridStyle"
     x-bind:x-sortable-item="row.id"
+    x-bind:class="{ 'fi-pc-row-settings-open': settingsRowId === row.id }"
 >
     <div class="fi-pc-feature-cell" role="rowheader">
         @if ($isFeatureReorderingAllowed)
