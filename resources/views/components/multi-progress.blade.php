@@ -17,6 +17,20 @@
     $isCompact = $isCompact();
     $placeholder = $getPlaceholder();
 
+    // When the whole cell is already a link/button (a column url()/action()
+    // or a table recordUrl/recordAction), a clickable segment cannot be a
+    // real <a> nested inside it — the browser would tear the markup apart.
+    // In that case segments navigate via script instead.
+    $isNested = $isNestedInInteractiveElement();
+
+    $navigationExpression = function (array $segment): string {
+        $url = Js::from($segment['url']);
+
+        return $segment['shouldOpenUrlInNewTab']
+            ? "window.open({$url}, '_blank')"
+            : "window.location.href = {$url}";
+    };
+
     // Sizing is passed to the stylesheet through CSS custom properties, so
     // arbitrary heights, gaps and radii never require extra CSS classes.
     $rootStyles = implode(';', [
@@ -110,7 +124,26 @@
                         $tooltip = $tooltipAttribute($segment['tooltip']);
                     @endphp
 
-                    @if (filled($segment['url']))
+                    @if (filled($segment['url']) && $isNested)
+                        {{--
+                            Clickable segment inside a linked cell: a nested
+                            <a> is invalid HTML, so use a focusable role="link"
+                            that navigates via script and stops the click from
+                            also triggering the surrounding cell link.
+                        --}}
+                        <div
+                            role="link"
+                            tabindex="0"
+                            class="{{ $segmentClasses }}"
+                            style="{{ $segmentStyles }}"
+                            aria-label="{{ $segmentAriaLabel }}"
+                            x-on:click.stop.prevent="{{ $navigationExpression($segment) }}"
+                            x-on:keydown.enter.stop.prevent="{{ $navigationExpression($segment) }}"
+                            @if ($tooltip)
+                                x-tooltip="{{ $tooltip }}"
+                            @endif
+                        ></div>
+                    @elseif (filled($segment['url']))
                         {{-- Clickable segment: a real link, natively focusable. --}}
                         <a
                             {!! \Filament\Support\generate_href_html($segment['url'], $segment['shouldOpenUrlInNewTab'])->toHtml() !!}

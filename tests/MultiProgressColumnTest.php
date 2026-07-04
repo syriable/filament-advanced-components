@@ -258,6 +258,61 @@ it('renders clickable segments as links', function () {
         ->and($html)->toContain('target="_blank"');
 });
 
+describe('nested inside a linked cell', function () {
+    it('does not force the cell read-only, so a column url makes the cell a link', function () {
+        // Regression: MultiProgressColumn used to call disabledClick() in
+        // setUp, which silently swallowed the column url / record url.
+        $column = MultiProgressColumn::make('progress')->url('https://example.com/record');
+
+        expect($column->isClickDisabled())->toBeFalse()
+            ->and($column->getUrl())->toBe('https://example.com/record');
+    });
+
+    it('degrades segment links to scripted role=link elements when the cell is a link', function () {
+        $html = mountColumn(
+            MultiProgressColumn::make('progress')
+                ->url('https://example.com/record')
+                ->segments([
+                    ['label' => 'Done', 'value' => 1, 'url' => 'https://example.com/segment'],
+                ]),
+        )->toHtml();
+
+        expect($html)->toContain('role="link"')
+            ->and($html)->toContain('window.location.href')
+            // The url is embedded in a JS expression (slashes escaped).
+            ->and($html)->toContain('example.com')
+            // No nested anchor for the segment.
+            ->and($html)->not->toContain('<a');
+    });
+
+    it('opens nested new-tab segment links via window.open', function () {
+        $html = mountColumn(
+            MultiProgressColumn::make('progress')
+                ->url('https://example.com/record')
+                ->segments([
+                    ['label' => 'Done', 'value' => 1, 'url' => 'https://example.com/segment', 'shouldOpenUrlInNewTab' => true],
+                ]),
+        )->toHtml();
+
+        expect($html)->toContain('window.open')
+            ->and($html)->toContain('_blank')
+            ->and($html)->toContain('x-on:click.stop.prevent');
+    });
+
+    it('keeps real anchors when the cell is not a link', function () {
+        // Mounted, but the column has no url and the table has no recordUrl.
+        $html = mountColumn(
+            MultiProgressColumn::make('progress')
+                ->segments([
+                    ['label' => 'Done', 'value' => 1, 'url' => 'https://example.com/segment'],
+                ]),
+        )->toHtml();
+
+        expect($html)->toContain('href="https://example.com/segment"')
+            ->and($html)->not->toContain('role="link"');
+    });
+});
+
 it('renders a skeleton when empty and enabled', function () {
     $html = MultiProgressColumn::make('progress')
         ->segments([])

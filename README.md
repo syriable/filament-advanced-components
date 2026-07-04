@@ -209,6 +209,14 @@ If you call neither `segments()` nor pass a closure, the column falls back to it
 so an Eloquent accessor (or JSON-cast attribute) returning a segments array works with zero
 configuration.
 
+The column cell also links like any other column — a `MultiProgressColumn::make(...)->url(...)`
+or a table `recordUrl` / `recordAction` makes the whole bar clickable. When both the cell and a
+segment carry a link, the segment can't be a real `<a>` nested inside the cell's anchor (invalid
+HTML), so a clickable segment automatically degrades to a keyboard-accessible `role="link"`
+element that navigates via script and stops the click from also triggering the cell link — the
+same handling as `AdvancedTextColumn`'s badges. (Call `->disabledClick()` to opt back into a
+fully read-only cell.)
+
 #### Colors
 
 Three formats are accepted per segment:

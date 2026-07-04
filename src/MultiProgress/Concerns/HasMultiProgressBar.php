@@ -489,6 +489,21 @@ trait HasMultiProgressBar
         return (bool) $this->evaluate($this->isCompact);
     }
 
+    /**
+     * Whether the bar ends up inside an interactive wrapper — a cell-level
+     * `<a>`/`<button>` produced by a column `url()`/`action()` or a table
+     * `recordUrl`/`recordAction`. Anchors cannot be nested in HTML, so a
+     * clickable segment degrades to a scripted, keyboard-accessible
+     * `role="link"` element in that context.
+     *
+     * The infolist entry and form field are never inside such a wrapper, so
+     * they keep the default; the table column overrides it.
+     */
+    public function isNestedInInteractiveElement(): bool
+    {
+        return false;
+    }
+
     public function hasSkeleton(): bool
     {
         return (bool) $this->evaluate($this->hasSkeleton);
