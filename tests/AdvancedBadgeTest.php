@@ -299,6 +299,57 @@ describe('interaction', function () {
     });
 });
 
+describe('responsive visibility', function () {
+    it('hides the badge from a breakpoint upward', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')->state('x')->badges([
+                AdvancedBadge::make('Beta')->hiddenFrom('lg'),
+            ]),
+        );
+
+        expect($html)->toContain('fi-adv-badge-hidden-from-lg');
+    });
+
+    it('shows the badge only from a breakpoint upward', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')->state('x')->badges([
+                AdvancedBadge::make('Verified')->visibleFrom('md'),
+            ]),
+        );
+
+        expect($html)->toContain('fi-adv-badge-visible-from-md');
+    });
+
+    it('evaluates the breakpoint lazily', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')->state('x')->badges([
+                AdvancedBadge::make('Wide')->hiddenFrom(fn (): string => 'xl'),
+            ]),
+        );
+
+        expect($html)->toContain('fi-adv-badge-hidden-from-xl');
+    });
+
+    it('emits no responsive class when no breakpoint is set', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')->state('x')->badges([
+                AdvancedBadge::make('Plain'),
+            ]),
+        );
+
+        expect($html)->not->toContain('fi-adv-badge-hidden-from')
+            ->and($html)->not->toContain('fi-adv-badge-visible-from');
+    });
+
+    it('ships the responsive breakpoint styles in the stylesheet', function () {
+        $css = file_get_contents(__DIR__ . '/../resources/css/advanced-text.css');
+
+        expect($css)->toContain('.fi-adv-badge-hidden-from-md')
+            ->and($css)->toContain('.fi-adv-badge-visible-from-lg')
+            ->and($css)->toContain('min-width: 48rem');
+    });
+});
+
 describe('nested inside an interactive cell', function () {
     it('degrades url badges to scripted role=link elements when the cell is a link', function () {
         // A static column url wraps the whole cell in an <a> — nesting a

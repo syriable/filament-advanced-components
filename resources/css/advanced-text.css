@@ -125,6 +125,71 @@
     }
 }
 
+/*
+    Responsive badge visibility — the same breakpoints as Filament's
+    columns (`hiddenFrom()` / `visibleFrom()`), but scoped to the badge
+    container so `display` wins over `.fi-badge` and restores the badge's
+    own `inline-flex` rather than a table `display` value. Breakpoints match
+    Tailwind's defaults (sm 40rem, md 48rem, lg 64rem, xl 80rem, 2xl 96rem).
+*/
+.fi-adv-badges .fi-adv-badge-visible-from-sm,
+.fi-adv-badges .fi-adv-badge-visible-from-md,
+.fi-adv-badges .fi-adv-badge-visible-from-lg,
+.fi-adv-badges .fi-adv-badge-visible-from-xl,
+.fi-adv-badges .fi-adv-badge-visible-from-2xl {
+    display: none;
+}
+
+@media (min-width: 40rem) {
+    .fi-adv-badges .fi-adv-badge-hidden-from-sm {
+        display: none;
+    }
+
+    .fi-adv-badges .fi-adv-badge-visible-from-sm {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 48rem) {
+    .fi-adv-badges .fi-adv-badge-hidden-from-md {
+        display: none;
+    }
+
+    .fi-adv-badges .fi-adv-badge-visible-from-md {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 64rem) {
+    .fi-adv-badges .fi-adv-badge-hidden-from-lg {
+        display: none;
+    }
+
+    .fi-adv-badges .fi-adv-badge-visible-from-lg {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 80rem) {
+    .fi-adv-badges .fi-adv-badge-hidden-from-xl {
+        display: none;
+    }
+
+    .fi-adv-badges .fi-adv-badge-visible-from-xl {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 96rem) {
+    .fi-adv-badges .fi-adv-badge-hidden-from-2xl {
+        display: none;
+    }
+
+    .fi-adv-badges .fi-adv-badge-visible-from-2xl {
+        display: inline-flex;
+    }
+}
+
 /* Character count indicator. */
 .fi-adv-text-character-count {
     flex-shrink: 0;
