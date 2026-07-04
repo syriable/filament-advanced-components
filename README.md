@@ -880,17 +880,50 @@ AdvancedSelect::make('status')
     ->optionBadges(['published' => 'Live']);
 ```
 
-Enums with the `HasLabel` contract expand automatically, and the maps still apply:
+#### Enums
+
+Pass an enum class and `AdvancedSelect` reads [Filament's enum
+contracts](https://filamentphp.com/docs/5.x/advanced/enums) straight off each case — no maps
+required:
 
 ```php
-AdvancedSelect::make('status')
-    ->options(PostStatus::class)
-    ->icons(['draft' => 'heroicon-o-pencil-square']);
+enum Priority: string implements HasLabel, HasIcon, HasColor, HasDescription
+{
+    case Low = 'low';
+    case High = 'high';
+
+    public function getLabel(): string { /* … */ }
+    public function getIcon(): string { /* … */ }
+    public function getColor(): string { /* … */ }
+    public function getDescription(): string { /* … */ }
+}
+
+AdvancedSelect::make('priority')->options(Priority::class);
 ```
 
-The maps only touch options generated from a plain pair; explicitly authored `SelectOption`
-objects always win. Anything you pass as a **closure** (a dynamic list, `relationship()`) stays
-fully native — express lazy rich options with per-property closures on a static list instead.
+- `HasLabel` → the option label
+- `HasIcon` → the leading icon
+- `HasColor` → the label tint
+- `HasDescription` → the description line
+
+Rich rendering activates **automatically** whenever a case carries an icon, color, or
+description; a label-only enum (or a plain one) stays fully native, since the native `Select`
+already renders those. Either way the enum is still registered for state casting, so selected
+values hydrate and dehydrate as enum instances exactly as on a native `Select`.
+
+You can still layer the parallel maps on top to override or fill in per-value — the enum
+provides the defaults, the map wins where it has an entry:
+
+```php
+AdvancedSelect::make('priority')
+    ->options(Priority::class)
+    ->descriptions(['high' => 'Escalated — respond within the hour']);
+```
+
+The maps only touch options generated from a plain pair or an enum case; explicitly authored
+`SelectOption` objects always win. Anything you pass as a **closure** (a dynamic list,
+`relationship()`) stays fully native — express lazy rich options with per-property closures on a
+static list instead.
 
 #### Groups
 

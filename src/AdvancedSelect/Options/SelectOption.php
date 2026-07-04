@@ -8,6 +8,10 @@ use BackedEnum;
 use Closure;
 use Filament\Support\Components\ViewComponent;
 use Filament\Support\Concerns\Macroable;
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasDescription;
+use Filament\Support\Contracts\HasIcon;
+use Filament\Support\Contracts\HasLabel;
 use Filament\Support\Enums\IconSize;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Traits\Conditionable;
@@ -15,6 +19,7 @@ use Illuminate\View\ComponentAttributeBag;
 use InvalidArgumentException;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
 use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedSelect;
+use UnitEnum;
 
 use function Filament\Support\generate_icon_html;
 
@@ -112,6 +117,44 @@ class SelectOption
     public static function make(string | int | BackedEnum $value, string | Htmlable | Closure | null $label = null): static
     {
         return new static($value, $label);
+    }
+
+    /**
+     * Build an option from an enum case, honouring Filament's enum contracts:
+     * {@see HasLabel} for the label, {@see HasIcon} for the icon,
+     * {@see HasColor} for the color, and {@see HasDescription} for the
+     * description. Anything the case does not implement is simply left unset,
+     * so the option falls back to the case name as its label.
+     *
+     * The result is marked implicit, so the component's parallel
+     * `icons()` / `descriptions()` / … maps may still override a value the
+     * enum provided.
+     */
+    public static function fromEnumCase(UnitEnum $case): static
+    {
+        $value = $case instanceof BackedEnum ? $case->value : $case->name;
+
+        $option = static::make($value)->markImplicit();
+
+        $option->label($case instanceof HasLabel ? ($case->getLabel() ?? $case->name) : $case->name);
+
+        if ($case instanceof HasIcon) {
+            $icon = $case->getIcon();
+
+            if (is_string($icon) || $icon instanceof BackedEnum) {
+                $option->icon($icon);
+            }
+        }
+
+        if ($case instanceof HasColor) {
+            $option->color($case->getColor());
+        }
+
+        if ($case instanceof HasDescription) {
+            $option->description($case->getDescription());
+        }
+
+        return $option;
     }
 
     /**
