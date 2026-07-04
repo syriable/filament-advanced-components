@@ -887,7 +887,10 @@ contracts](https://filamentphp.com/docs/5.x/advanced/enums) straight off each ca
 required:
 
 ```php
-enum Priority: string implements HasLabel, HasIcon, HasColor, HasDescription
+use Filament\Support\Contracts\{HasColor, HasDescription, HasIcon, HasLabel};
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
+
+enum Priority: string implements HasLabel, HasIcon, HasColor, HasDescription, HasBadge
 {
     case Low = 'low';
     case High = 'high';
@@ -896,6 +899,7 @@ enum Priority: string implements HasLabel, HasIcon, HasColor, HasDescription
     public function getIcon(): string { /* … */ }
     public function getColor(): string { /* … */ }
     public function getDescription(): string { /* … */ }
+    public function getBadge(): ?string { /* … */ }
 }
 
 AdvancedSelect::make('priority')->options(Priority::class);
@@ -905,9 +909,14 @@ AdvancedSelect::make('priority')->options(Priority::class);
 - `HasIcon` → the leading icon
 - `HasColor` → the label tint
 - `HasDescription` → the description line
+- `HasBadge` → a trailing badge (inherits the case's `HasColor` color)
 
-Rich rendering activates **automatically** whenever a case carries an icon, color, or
-description; a label-only enum (or a plain one) stays fully native, since the native `Select`
+The first four are Filament's own [enum contracts](https://filamentphp.com/docs/5.x/advanced/enums);
+`HasBadge` is the package's own contract (Filament ships none for badges) and lives at
+`Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge`.
+
+Rich rendering activates **automatically** whenever a case carries an icon, color, description, or
+badge; a label-only enum (or a plain one) stays fully native, since the native `Select`
 already renders those. Either way the enum is still registered for state casting, so selected
 values hydrate and dehydrate as enum instances exactly as on a native `Select`.
 
@@ -925,9 +934,11 @@ The maps only touch options generated from a plain pair or an enum case; explici
 `relationship()`) stays fully native — express lazy rich options with per-property closures on a
 static list instead.
 
-#### Groups
+#### Grouping options
 
-Give options a `group()` and they render inside native optgroups:
+Options render inside native optgroups, the
+[same way Filament groups a `Select`](https://filamentphp.com/docs/5.x/forms/select#grouping-options).
+Give a `SelectOption` a `group()`:
 
 ```php
 AdvancedSelect::make('assignee')->options([
@@ -936,6 +947,35 @@ AdvancedSelect::make('assignee')->options([
     SelectOption::make('sam', 'Sam')->group('Team'),
 ]);
 ```
+
+…or use Filament's nested `groupLabel => [value => label]` array — which also accepts the parallel
+maps, so you can enrich a grouped list you already have:
+
+```php
+AdvancedSelect::make('status')
+    ->options([
+        'Published'   => ['live' => 'Live', 'scheduled' => 'Scheduled'],
+        'Unpublished' => ['draft' => 'Draft'],
+    ])
+    ->icons(['live' => 'heroicon-o-globe-alt']);
+```
+
+Grouping applies to search results too: matches stay under their group headings.
+
+#### Layout
+
+Each dropdown row is laid out as an icon beside a body; the body's first line carries the label
+and badge together, and the description — when present — drops onto its own line beneath them:
+
+```
+[icon]  Label  [Badge]
+        Description line
+```
+
+So the badge always hugs the label, and a description can appear or disappear without shifting the
+icon, label, or badge. The selected value (and each multi-select chip) uses the compact single
+line — icon, label, badge — and never shows the description. Restyle any of it through
+`advanced-select.css`, a decorator, or a custom renderer (below).
 
 #### Presets
 

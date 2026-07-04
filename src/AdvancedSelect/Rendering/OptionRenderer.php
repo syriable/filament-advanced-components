@@ -13,12 +13,20 @@ use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorRes
 /**
  * The default {@see RendersOptions} implementation.
  *
- * It assembles a small, dependency-free HTML fragment per option — icon,
- * a label/description stack, and a trailing badge — styled by the
- * `advanced-select.css` layer. It never escapes the icon markup (already
- * safe SVG from Filament) but always escapes the label, description, and
- * badge text, so developer-supplied strings can contain markup characters
- * without breaking out.
+ * It assembles a small, dependency-free HTML fragment per option. The dropdown
+ * row is laid out as an icon beside a body; the body's first line holds the
+ * label and badge together, and the description — when present — sits on its
+ * own line beneath them, so the badge always hugs the label and the
+ * description can appear or disappear without shifting anything else:
+ *
+ * ```
+ * [icon]  Label  [Badge]
+ *         Description line
+ * ```
+ *
+ * It never escapes the icon markup (already safe SVG from Filament) but always
+ * escapes the label, description, and badge text, so developer-supplied strings
+ * can contain markup characters without breaking out.
  *
  * Subclass and override a single `render*` method to tweak one surface, or
  * bind a wholly different implementation against the contract.
@@ -29,19 +37,18 @@ class OptionRenderer implements RendersOptions
     {
         $attributes = $this->rootAttributes($option, ['fi-adv-select-option']);
 
-        $labelBlock = '<span class="fi-adv-select-option-label">' . e($option->label) . '</span>';
+        $head = '<span class="fi-adv-select-option-head">'
+            . '<span class="fi-adv-select-option-label">' . e($option->label) . '</span>'
+            . $this->badgeHtml($option)
+            . '</span>';
 
-        if ($option->hasDescription()) {
-            $labelBlock = '<span class="fi-adv-select-option-text">'
-                . $labelBlock
-                . '<span class="fi-adv-select-option-description">' . e((string) $option->description) . '</span>'
-                . '</span>';
-        }
+        $description = $option->hasDescription()
+            ? '<span class="fi-adv-select-option-description">' . e((string) $option->description) . '</span>'
+            : '';
 
         return '<div ' . $attributes->toHtml() . '>'
             . $this->iconHtml($option)
-            . $labelBlock
-            . $this->badgeHtml($option)
+            . '<span class="fi-adv-select-option-body">' . $head . $description . '</span>'
             . '</div>';
     }
 

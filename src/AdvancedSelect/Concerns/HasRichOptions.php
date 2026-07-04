@@ -11,6 +11,8 @@ use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Htmlable;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\OptionViewModel;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOption;
@@ -242,7 +244,46 @@ trait HasRichOptions
         $this->getOptionLabelUsing(fn (mixed $value): ?string => $this->buildSelectedLabel($value));
         $this->getOptionLabelsUsing(fn (mixed $values): array => $this->buildSelectedLabels($values));
         $this->getSearchResultsUsing(fn (string $search): array => $this->buildSearchResults($search));
-        $this->disableOptionWhen(fn (mixed $value): bool => $this->isResolvedOptionDisabled($value));
+    }
+
+    /**
+     * Fold a per-option `disabled()` into the native disabled check so it
+     * composes with — and cannot be clobbered by — any `disableOptionWhen()`
+     * the developer also registers on the field.
+     *
+     * @param  array-key  $value
+     */
+    public function isOptionDisabled($value, string | Htmlable $label): bool
+    {
+        if ($this->hasRichOptions() && $this->isResolvedOptionDisabled($value)) {
+            return true;
+        }
+
+        return parent::isOptionDisabled($value, $label);
+    }
+
+    public function hasDisabledOptions(): bool
+    {
+        if ($this->hasRichOptions() && $this->hasResolvedDisabledOptions()) {
+            return true;
+        }
+
+        return parent::hasDisabledOptions();
+    }
+
+    /**
+     * Whether any resolved option is disabled for this render — so validation
+     * ({@see getEnabledOptions()}) knows to exclude it.
+     */
+    protected function hasResolvedDisabledOptions(): bool
+    {
+        foreach ($this->getResolvedOptionViewModels() as $viewModel) {
+            if ($viewModel->isDisabled) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -432,8 +473,8 @@ trait HasRichOptions
 
     /**
      * Whether the given options input is an enum whose cases carry rendering
-     * information beyond a label — an icon, color, or description — and so
-     * warrant rich rendering. A label-only ({@see HasLabel}) or plain enum
+     * information beyond a label — an icon, color, description, or badge — and
+     * so warrant rich rendering. A label-only ({@see HasLabel}) or plain enum
      * stays native, since the native `Select` already renders those.
      */
     protected function isRichEnum(mixed $options): bool
@@ -444,7 +485,8 @@ trait HasRichOptions
 
         return is_a($options, HasIcon::class, allow_string: true)
             || is_a($options, HasColor::class, allow_string: true)
-            || is_a($options, HasDescription::class, allow_string: true);
+            || is_a($options, HasDescription::class, allow_string: true)
+            || is_a($options, HasBadge::class, allow_string: true);
     }
 
     protected function applyOptionMaps(SelectOptionCollection $collection): void
