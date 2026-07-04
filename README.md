@@ -245,6 +245,82 @@ color classes per palette, so tables with thousands of rows do no repeated color
 column's stylesheet is registered through `FilamentAsset` and works in any panel without a
 custom theme.
 
+#### Live updates (event-driven, no polling)
+
+Because the bar is plain server-rendered Blade, it updates with *anything* that re-renders
+the Livewire component — including a broadcast event. That means you can watch a long-running
+job (say, AI-powered automatic translation) creep forward in real time **without**
+`wire:poll` hammering your server every few seconds whether or not anything changed.
+
+The pattern: the job broadcasts an event over WebSockets only when progress actually moves,
+the Filament page captures it and refreshes itself, and `animated()` (on by default)
+transitions the segments smoothly to their new widths. While the job is idle, the network is
+completely silent — one open WebSocket connection, zero requests.
+
+**1. Install Laravel's first-party WebSocket server ([Reverb](https://laravel.com/docs/reverb)):**
+
+```bash
+php artisan install:broadcasting   # installs Reverb + Laravel Echo
+php artisan reverb:start           # run alongside your queue worker
+```
+
+**2. Broadcast from the job — but only on meaningful change.** Throttling on the server is
+what keeps this cheap: guard the broadcast so a 2,000-key run emits at most ~100 tiny events
+instead of one per key.
+
+```php
+class TranslationProgressUpdated implements ShouldBroadcast
+{
+    public function __construct(public Language $language) {}
+
+    public function broadcastOn(): array
+    {
+        return [new PrivateChannel("project.{$this->language->project_id}.translations")];
+    }
+}
+```
+
+```php
+// Inside the job's loop:
+$percent = (int) floor($language->progressPercent());
+
+if ($percent !== $lastBroadcastPercent) {
+    broadcast(new TranslationProgressUpdated($language));
+    $lastBroadcastPercent = $percent;
+}
+```
+
+**3. Capture the event on the Filament page.** Pages are Livewire components, so map the
+Echo event to Livewire's built-in `$refresh` action:
+
+```php
+class ListLanguages extends ListRecords
+{
+    protected function getListeners(): array
+    {
+        return [
+            "echo-private:project.{$this->projectId}.translations,TranslationProgressUpdated" => '$refresh',
+        ];
+    }
+}
+```
+
+The same listener works on a View page rendering a `MultiProgressEntry`. Filament boots Echo
+automatically once your Reverb credentials are in the `broadcasting.echo` section of
+`config/filament.php` (publish it with
+`php artisan vendor:publish --tag=filament-config`).
+
+That's the whole loop: job progresses → one small WebSocket frame → Livewire re-renders →
+the segments animate to their new widths.
+
+> [!TIP]
+> Can't run a WebSocket process where you deploy? The lightweight fallback is *conditional*
+> polling — poll only while a job is actually running, and go silent otherwise:
+>
+> ```php
+> ->poll(fn (): ?string => TranslationRun::active()->exists() ? '3s' : null)
+> ```
+
 ## Testing
 
 ```bash
