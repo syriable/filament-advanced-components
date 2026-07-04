@@ -65,7 +65,11 @@
     >
         @include('filament-advanced-components::components.package-comparison.toolbar')
 
-        <div class="fi-pc-scroll-ctn" x-show="! collapsed">
+        <div
+            class="fi-pc-scroll-ctn"
+            x-show="! collapsed"
+            x-bind:class="{ 'fi-pc-settings-open': settingsRowId !== null }"
+        >
             <div class="fi-pc-table" role="table">
                 @include('filament-advanced-components::components.package-comparison.header')
 

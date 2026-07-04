@@ -19,8 +19,8 @@
     --fi-pc-muted: color-mix(in oklab, var(--gray-950) 4%, transparent);
 
     position: relative;
+    border: 1px solid var(--fi-pc-border);
     border-radius: 0.75rem;
-    box-shadow: inset 0 0 0 1px var(--fi-pc-border);
     background-color: var(--fi-pc-surface);
 }
 
@@ -231,8 +231,15 @@
 
 .fi-pc-scroll-ctn {
     overflow-x: auto;
-    border-bottom-left-radius: 0.75rem;
-    border-bottom-right-radius: 0.75rem;
+    border-bottom-left-radius: calc(0.75rem - 1px);
+    border-bottom-right-radius: calc(0.75rem - 1px);
+}
+
+/* While a row's settings popover is open, reserve room below the table so
+   the popover isn't clipped by this container's overflow (`overflow-x: auto`
+   forces vertical clipping too). */
+.fi-pc-scroll-ctn.fi-pc-settings-open {
+    padding-bottom: 13rem;
 }
 
 .fi-pc-table {
@@ -250,6 +257,14 @@
 
 .fi-pc-row {
     border-top: 1px solid var(--fi-pc-border);
+}
+
+/* Sticky feature cells each carry a z-index, so a later row would paint over
+   an earlier row's settings popover; the row that owns the open popover is
+   lifted above its siblings instead. */
+.fi-pc-row.fi-pc-row-settings-open {
+    position: relative;
+    z-index: 25;
 }
 
 .fi-pc-header {
@@ -298,6 +313,17 @@
     gap: 0.375rem;
     padding: 0.5rem 0.75rem;
     background-color: var(--fi-pc-surface);
+
+    /* The feature column owns its own end-edge separator: cell start-borders
+       scroll away underneath it when the column is sticky. */
+    border-inline-end: 1px solid var(--fi-pc-border);
+}
+
+/* The first stamped cell sits right after its `x-for` template element; its
+   start border would double the feature column's end border. */
+.fi-pc-header > template + .fi-pc-package-cell,
+.fi-pc-row > template + .fi-pc-cell {
+    border-inline-start: none;
 }
 
 .fi-pc-header .fi-pc-feature-cell {
