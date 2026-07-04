@@ -12,8 +12,10 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\RendersBadges;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\LinkGenerator;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\TextMasker;
 use Syriable\Filament\Plugins\AdvancedComponents\Commands\AdvancedComponentsCommand;
@@ -64,10 +66,11 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         // Contract bindings for the AdvancedTextColumn services. Rebind
-        // these in a service provider to customize masking or link
-        // generation globally.
+        // these in a service provider to customize masking, link
+        // generation, or badge rendering globally.
         $this->app->singleton(MasksText::class, TextMasker::class);
         $this->app->singleton(GeneratesLinks::class, LinkGenerator::class);
+        $this->app->singleton(RendersBadges::class, BadgeRenderer::class);
     }
 
     public function packageBooted(): void

@@ -2,20 +2,8 @@
 
 declare(strict_types=1);
 
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\AdvancedTextEntry;
-use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\SchemaLivewireComponent;
-
-/**
- * Render an entry's embedded HTML inside a minimal schema container.
- */
-function renderEntry(AdvancedTextEntry $entry): string
-{
-    return $entry
-        ->container(Schema::make(new SchemaLivewireComponent))
-        ->toEmbeddedHtml();
-}
 
 it('renders exactly like a native text entry when no advanced feature is used', function () {
     $html = renderEntry(AdvancedTextEntry::make('email')->state('jane@example.com'));

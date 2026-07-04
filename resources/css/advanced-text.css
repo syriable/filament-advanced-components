@@ -47,15 +47,82 @@
     text-transform: capitalize;
 }
 
-/* Affix images. */
+/* Affix images. `object-fit` defaults to `contain`; override per column
+   with `imageFit()`, which renders an inline `object-fit` style. */
 .fi-adv-text-image {
     flex-shrink: 0;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 /* Affix icons. */
 .fi-adv-text-affixed > .fi-icon {
     flex-shrink: 0;
+}
+
+/* Advanced badges. */
+.fi-adv-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.fi-adv-badges > a.fi-badge {
+    cursor: pointer;
+    text-decoration-line: none;
+}
+
+.fi-adv-badges > [role='button'].fi-badge {
+    cursor: pointer;
+}
+
+.fi-adv-badges > .fi-badge:focus-visible {
+    outline: 2px solid var(--color-primary-600);
+    outline-offset: 1px;
+}
+
+.fi-adv-badge-outline {
+    background-color: transparent;
+    border: 1px solid currentColor;
+}
+
+.fi-adv-badge-pill {
+    border-radius: calc(infinity * 1px);
+}
+
+@keyframes fi-adv-badge-pulse {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.fi-adv-badge-pulse {
+    animation: fi-adv-badge-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fi-adv-badge-bounce {
+    0%,
+    100% {
+        transform: translateY(-15%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+.fi-adv-badge-bounce {
+    animation: fi-adv-badge-bounce 1s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-adv-badge-pulse,
+    .fi-adv-badge-bounce {
+        animation: none;
+    }
 }
 
 /* Character count indicator. */

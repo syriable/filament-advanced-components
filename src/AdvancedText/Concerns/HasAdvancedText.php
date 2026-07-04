@@ -25,6 +25,7 @@ use function Filament\Support\generate_icon_html;
 trait HasAdvancedText
 {
     use HasAffixes;
+    use HasBadges;
     use HasCharacterCount;
     use HasSmartLinks;
     use HasTextMask;
@@ -163,9 +164,10 @@ trait HasAdvancedText
         $typographyClasses = $this->getTypographyClasses();
         $hasAffixes = $this->hasAffixes();
         $hasCharacterCount = $this->hasCharacterCount();
+        $hasBadges = $this->hasAdvancedBadges();
 
-        if ($hasAffixes || $hasCharacterCount || ($typographyClasses !== [])) {
-            $html = $this->wrapAdvancedTextHtml($html, $typographyClasses, $hasAffixes, $hasCharacterCount);
+        if ($hasAffixes || $hasCharacterCount || $hasBadges || ($typographyClasses !== [])) {
+            $html = $this->wrapAdvancedTextHtml($html, $typographyClasses, $hasAffixes, $hasCharacterCount, $hasBadges);
         }
 
         foreach ($this->htmlDecorators as $decorator) {
@@ -183,9 +185,9 @@ trait HasAdvancedText
      *
      * @param  array<string>  $typographyClasses
      */
-    protected function wrapAdvancedTextHtml(string $html, array $typographyClasses, bool $hasAffixes, bool $hasCharacterCount): string
+    protected function wrapAdvancedTextHtml(string $html, array $typographyClasses, bool $hasAffixes, bool $hasCharacterCount, bool $hasBadges = false): string
     {
-        if ((! $hasAffixes) && (! $hasCharacterCount)) {
+        if ((! $hasAffixes) && (! $hasCharacterCount) && (! $hasBadges)) {
             return '<div class="' . e(implode(' ', $typographyClasses)) . '">' . $html . '</div>';
         }
 
@@ -199,18 +201,23 @@ trait HasAdvancedText
             $imageSize = $this->getImageSize();
             $imageBorderRadius = $this->getImageBorderRadius();
             $imageAlt = $this->getImageAlt();
+            $imageFit = $this->getImageFit();
 
             if (filled($prefixImageUrl = $this->getPrefixImageUrl())) {
-                $prefixHtml .= $imageRenderer->render($prefixImageUrl, $imageSize, $imageBorderRadius, $imageAlt)->toHtml();
+                $prefixHtml .= $imageRenderer->render($prefixImageUrl, $imageSize, $imageBorderRadius, $imageAlt, fit: $imageFit)->toHtml();
             }
 
             $prefixHtml .= $this->generateAffixIconHtml($this->getPrefixIcon(), $this->getPrefixIconColor());
             $suffixHtml .= $this->generateAffixIconHtml($this->getSuffixIcon(), $this->getSuffixIconColor());
 
             if (filled($suffixImageUrl = $this->getSuffixImageUrl())) {
-                $suffixHtml .= $imageRenderer->render($suffixImageUrl, $imageSize, $imageBorderRadius, $imageAlt)->toHtml();
+                $suffixHtml .= $imageRenderer->render($suffixImageUrl, $imageSize, $imageBorderRadius, $imageAlt, fit: $imageFit)->toHtml();
             }
         }
+
+        $badgesHtml = $hasBadges
+            ? $this->generateAdvancedBadgesHtml()
+            : '';
 
         $characterCountHtml = $hasCharacterCount
             ? $this->generateCharacterCountHtml()
@@ -220,6 +227,7 @@ trait HasAdvancedText
             . $prefixHtml
             . '<div class="fi-adv-text-content">' . $html . '</div>'
             . $suffixHtml
+            . $badgesHtml
             . $characterCountHtml
             . '</div>';
     }

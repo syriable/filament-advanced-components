@@ -20,12 +20,16 @@ class ImageRenderer
     /**
      * @param  array<string, string | null>  $attributes
      */
-    public function render(string $url, string $size, ?string $borderRadius = null, string $alt = '', array $attributes = []): HtmlString
+    public function render(string $url, string $size, ?string $borderRadius = null, string $alt = '', array $attributes = [], ?string $fit = null): HtmlString
     {
         $style = "width: {$size}; height: {$size};";
 
         if ($borderRadius !== null) {
             $style .= " border-radius: {$borderRadius};";
+        }
+
+        if ($fit !== null) {
+            $style .= " object-fit: {$fit};";
         }
 
         $attributes = [

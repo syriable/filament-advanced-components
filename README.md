@@ -460,6 +460,7 @@ AdvancedTextColumn::make('name')
     ->prefixImage(fn (User $record): string => $record->avatar_url)
     ->imageCircular()             // or ->imageRounded(4) / ->imageRounded('0.5rem')
     ->imageSize('2rem')           // integers are pixels, strings any CSS length
+    ->imageFit('cover')           // any CSS object-fit value; defaults to 'contain'
     ->imageAlt('Avatar')          // defaults to '' (decorative)
     ->suffixIcon(Heroicon::CheckBadge, color: 'success')
     ->prefixIcon(Heroicon::User);
@@ -503,10 +504,87 @@ AdvancedTextColumn::make('description')
 The native `tooltip()`, `copyable()`, `copyMessage()`, and `copyMessageDuration()` keep
 working; an explicit `tooltip()` wins over `fullStateTooltip()`.
 
-#### Badges & everything else
+#### Advanced badges
 
-Badges, multiple badges, colors, and separators are already first-class in `TextColumn`,
-so nothing is duplicated — it all just works through `AdvancedTextColumn`:
+Beyond the native `badge()` (which turns the *state itself* into badges), an unlimited
+number of fully independent badges can be attached next to the content:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\AdvancedBadge;
+
+AdvancedTextColumn::make('status')
+    ->badges([
+        AdvancedBadge::make('Verified')
+            ->color('success')
+            ->border()
+            ->pulse(),
+
+        AdvancedBadge::make('Premium')
+            ->color('warning')
+            ->bounce(),
+
+        '2FA Enabled', // plain strings become label-only badges
+    ]);
+```
+
+Every option accepts a static value or a closure with the usual `$record` / `$state`
+injections — one badge instance is shared across all rows and resolved lazily per cell:
+
+```php
+AdvancedBadge::make(fn (User $record): string => $record->status)
+    ->color(fn (User $record): string => match ($record->status) {
+        'active' => 'success',
+        'pending' => 'warning',
+        'banned' => 'danger',
+    })
+    ->visible(fn (User $record): bool => $record->is_active)
+    ->tooltip(fn (User $record): string => "Updated {$record->updated_at}");
+```
+
+The full builder API:
+
+- **Label** — `make()` / `label()` (string, `Htmlable`, or closure), `translateLabel()`.
+  Empty labels skip the badge entirely.
+- **Icon** — `icon($icon, $position)`, `iconPosition()`, `iconColor()` (semantic Filament
+  name or any CSS color).
+- **Colors** — `color()` takes a semantic name or `Color` palette array, resolved exactly
+  like a native badge (dark mode included); `backgroundColor()` and `textColor()` override
+  just one channel.
+- **Shape** — `border()`, `borderColor()`, `borderWidth()`, `borderRadius()`, `rounded()`,
+  `pill()`, `outline()`, `filled()`, `size('xs'|'sm'|'md'|'lg')`.
+- **Animation** — `pulse()`, `bounce()` (respecting `prefers-reduced-motion`), or any
+  animation registered with `BadgeAnimations::register('wiggle', 'my-wiggle-class')` via
+  `animation('wiggle')`. All accept a condition.
+- **Visibility** — `visible()`, `hidden()`, and `authorize()` (a gate ability checked
+  against the record, or a closure).
+- **Interaction** — `url($url, shouldOpenInNewTab: true)` renders a real anchor;
+  `wireClick('method')` and `alpineClick('expression')` add Livewire / Alpine handlers with
+  keyboard-accessible button semantics (`role="button"`, `tabindex`, Enter/Space);
+  `extraAttributes([...])` is the escape hatch for anything else; `classes([...])` adds CSS
+  classes.
+- **Tooltips** — `tooltip()` uses Filament's tippy integration.
+
+Extensibility mirrors the rest of the package: subclass `AdvancedBadge`, add macros
+(`AdvancedBadge::macro()`), register reusable presets —
+
+```php
+AdvancedBadge::registerPreset('pii', fn (AdvancedBadge $badge) => $badge
+    ->color('danger')
+    ->outline()
+    ->tooltip('Contains personal data'));
+
+AdvancedBadge::make('Sensitive')->preset('pii');
+```
+
+— or rebind the `RendersBadges` contract to swap the renderer globally. Rendering is
+plain server-side string building on top of an immutable per-cell `BadgeViewModel`, so
+tables with thousands of rows stay fast: no per-badge Blade views, no repeated object
+construction, one DOM element per badge.
+
+#### Native state badges & everything else
+
+Badges from the state itself, colors, and separators are already first-class in
+`TextColumn`, so nothing is duplicated — it all just works through `AdvancedTextColumn`:
 
 ```php
 AdvancedTextColumn::make('tags')
