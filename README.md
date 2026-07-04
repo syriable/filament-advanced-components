@@ -361,6 +361,197 @@ the segments animate to their new widths.
 > ->poll(fn (): ?string => TranslationRun::active()->exists() ? '3s' : null)
 > ```
 
+### AdvancedTextColumn
+
+A drop-in replacement for Filament's `TextColumn` with advanced ergonomics: text masking,
+contact links, affix images and icons, extra typography, a character count, and a rendering
+decorator pipeline. Every native `TextColumn` feature — `searchable()`, `sortable()`,
+`badge()`, `copyable()`, `limit()`, `dateTime()`, `money()`, descriptions, placeholders —
+keeps working untouched, because the native cell is rendered by `TextColumn` itself and
+only *wrapped* when an advanced feature needs it.
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\AdvancedTextColumn;
+
+AdvancedTextColumn::make('email')
+    ->searchable()
+    ->sortable()
+    ->copyable()
+    ->mailable()
+    ->bold(fn (User $record): bool => $record->is_admin)
+    ->prefixImage(fn (User $record): string => $record->avatar_url)
+    ->imageCircular();
+```
+
+Every option accepts a static value **or a closure** with Filament's usual `$record`,
+`$state`, `$livewire`, `$table`, and `$rowLoop` injections, evaluated lazily per cell.
+
+#### Masking
+
+Hide sensitive values without giving up searching or sorting on the raw column:
+
+```php
+AdvancedTextColumn::make('phone')
+    ->callable()
+    ->masked(fn (): bool => auth()->user()->cannot('viewSensitiveData'))
+    ->maskIndex(3)      // zero-based; negative counts from the end
+    ->maskLength(5)     // null (default) masks through to the end
+    ->maskCharacter('*');
+
+AdvancedTextColumn::make('email')
+    ->maskEmail();      // jane.doe@example.com → j•••••••@example.com
+
+AdvancedTextColumn::make('api_token')
+    ->maskStateUsing(fn (string $state): string => Str::mask($state, '#', 4)); // full control
+```
+
+Masking is applied **after** native formatting, so `formatStateUsing()`, `dateTime()`,
+`money()`, and `limit()` all see the raw value and the mask operates on exactly what would
+otherwise reach the browser. It is also leak-proof by design:
+
+- `copyable()` copies the **masked** value unless you explicitly set `copyableState()`,
+- masked cells never emit generated contact links (the raw state would be readable in the
+  `href`),
+- `fullStateTooltip()` is suppressed while the mask is active,
+- HTML states (`html()` / `markdown()`) are reduced to plain text before masking, so a
+  partial mask can't leak markup.
+
+#### Contact links
+
+Turn the cell into a link generated from its own state. Invalid states (a malformed email,
+a number without digits) degrade gracefully to plain text, and an explicit `url()` always
+wins:
+
+```php
+AdvancedTextColumn::make('email')->mailable();                       // mailto:
+AdvancedTextColumn::make('phone')->callable();                       // tel: (separators stripped)
+AdvancedTextColumn::make('phone')->whatsappable(message: 'Hello!');  // https://wa.me/…?text=…
+```
+
+Each helper accepts a condition: `->mailable(fn ($record) => $record->email_verified)`.
+
+#### Affix images & icons
+
+Render an image or icon on either side of the content — including a prefix *and* a suffix
+at the same time, which the native single `icon()` cannot do:
+
+```php
+AdvancedTextColumn::make('name')
+    ->prefixImage(fn (User $record): string => $record->avatar_url)
+    ->imageCircular()             // or ->imageRounded(4) / ->imageRounded('0.5rem')
+    ->imageSize('2rem')           // integers are pixels, strings any CSS length
+    ->imageAlt('Avatar')          // defaults to '' (decorative)
+    ->suffixIcon(Heroicon::CheckBadge, color: 'success')
+    ->prefixIcon(Heroicon::User);
+```
+
+`suffixImage()` mirrors `prefixImage()`. Images are lazy-loaded and their attributes are
+escaped.
+
+#### Typography
+
+```php
+AdvancedTextColumn::make('name')
+    ->bold(fn (User $record): bool => $record->is_admin)
+    ->italic()
+    ->underline()
+    ->strikethrough(fn (Task $record): bool => $record->is_done)
+    ->uppercase();                // also: lowercase(), capitalize()
+```
+
+These compose with the native `weight()`, `fontFamily()`, `size()`, and `color()` — use
+the native APIs where they exist; the modifiers above only add what Filament doesn't have.
+
+#### Character count
+
+```php
+AdvancedTextColumn::make('bio')->characterCount();              // “142”
+AdvancedTextColumn::make('bio')->characterLimitIndicator(160);  // “142 / 160”, red when over
+```
+
+The count measures the raw state (multibyte-safe), so it stays truthful next to `limit()`
+or `masked()`.
+
+#### Tooltip & copy enhancements
+
+```php
+AdvancedTextColumn::make('description')
+    ->limit(30)
+    ->fullStateTooltip();   // hover reveals the untruncated state (never a masked one)
+```
+
+The native `tooltip()`, `copyable()`, `copyMessage()`, and `copyMessageDuration()` keep
+working; an explicit `tooltip()` wins over `fullStateTooltip()`.
+
+#### Badges & everything else
+
+Badges, multiple badges, colors, and separators are already first-class in `TextColumn`,
+so nothing is duplicated — it all just works through `AdvancedTextColumn`:
+
+```php
+AdvancedTextColumn::make('tags')
+    ->separator(',')
+    ->badge()
+    ->color(fn (string $state): string => $state === 'urgent' ? 'danger' : 'gray');
+```
+
+The same goes for `description()`, `placeholder()`, `wrap()`, `lineClamp()`,
+`listWithLineBreaks()`, `limitList()`, `html()` / `markdown()` (sanitized), visibility
+(`visible()` / `hidden()`), and every other native feature. Output is escaped by default;
+HTML rendering is opt-in and sanitized by Filament.
+
+#### Extending
+
+The column is built for extension:
+
+```php
+// Macros — add your own fluent methods:
+AdvancedTextColumn::macro('pii', function () {
+    /** @var AdvancedTextColumn $this */
+    return $this->masked(fn (): bool => auth()->user()->cannot('viewPii'))->copyable();
+});
+
+// Global defaults for every instance:
+AdvancedTextColumn::configureUsing(fn (AdvancedTextColumn $column) => $column->fullStateTooltip());
+
+// Rendering decorators — transform the final cell HTML (runs last, in order):
+AdvancedTextColumn::make('name')
+    ->decorateHtmlUsing(fn (string $html): string => "<div class=\"sparkle\">{$html}</div>");
+```
+
+Services are bound to contracts, so masking and link generation can be swapped globally
+in a service provider without touching any column:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
+
+$this->app->singleton(MasksText::class, MyRegexMasker::class);
+$this->app->singleton(GeneratesLinks::class, MyTrackingLinkGenerator::class);
+```
+
+Subclasses can override `wrapEmbeddedHtml()` (the wrapper markup), `getImageRenderer()`
+(the `<img>` markup), `formatState()`, or `getUrl()` — each override point is small and
+documented in the source.
+
+#### Upgrading & compatibility notes
+
+- `AdvancedTextColumn` extends `TextColumn` and never re-implements its rendering: the
+  parent renders the cell, and a wrapper is only added when masking, affixes, typography,
+  or the character count are configured. Unconfigured columns render byte-for-byte native
+  output, so swapping `TextColumn::make(...)` for `AdvancedTextColumn::make(...)` is safe.
+- Searching and sorting always operate on the **database value**; masking is purely a
+  presentation concern. If a value must never leave the server unmasked, keep using
+  policies/attribute casts — a table search on a masked column can still confirm a value
+  exists.
+
+#### Performance
+
+Rendering is pure server-side string building on top of the parent's output — no Blade
+sub-views, no per-cell view resolution. Feature checks short-circuit, state is read through
+Filament's per-record cache, and services resolve once from the container as singletons,
+so the column is comfortable on tables with thousands of rows.
+
 ### PackageComparison
 
 A Fiverr-style package comparison editor as a real Filament form field. Columns are

@@ -1,0 +1,80 @@
+/* AdvancedTextColumn — typography, affix images, and character count. */
+
+/* Flex wrapper, applied only when affixes or a character count are present. */
+.fi-adv-text-affixed {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.fi-adv-text-affixed > .fi-adv-text-content {
+    min-width: 0;
+}
+
+/* Typography modifiers. Applied to a wrapper so they cascade into the
+   native text column markup without patching its HTML. Text decorations
+   propagate to in-flow descendants by design. */
+.fi-adv-text-bold {
+    font-weight: 700;
+}
+
+.fi-adv-text-italic {
+    font-style: italic;
+}
+
+.fi-adv-text-underline {
+    text-decoration-line: underline;
+}
+
+.fi-adv-text-strike {
+    text-decoration-line: line-through;
+}
+
+.fi-adv-text-underline.fi-adv-text-strike {
+    text-decoration-line: underline line-through;
+}
+
+.fi-adv-text-uppercase {
+    text-transform: uppercase;
+}
+
+.fi-adv-text-lowercase {
+    text-transform: lowercase;
+}
+
+.fi-adv-text-capitalize {
+    text-transform: capitalize;
+}
+
+/* Affix images. */
+.fi-adv-text-image {
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+/* Affix icons. */
+.fi-adv-text-affixed > .fi-icon {
+    flex-shrink: 0;
+}
+
+/* Character count indicator. */
+.fi-adv-text-character-count {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-500);
+}
+
+.dark .fi-adv-text-character-count {
+    color: var(--gray-400);
+}
+
+.fi-adv-text-character-count.fi-adv-text-character-count-exceeded {
+    color: var(--danger-600);
+}
+
+.dark .fi-adv-text-character-count.fi-adv-text-character-count-exceeded {
+    color: var(--danger-400);
+}
