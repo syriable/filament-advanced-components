@@ -705,6 +705,34 @@ it('renders rich options grouped via a nested array', function () {
         ->and($options['Unpublished'])->toHaveKey('draft');
 });
 
+it('activates rich mode for SelectOption objects nested in a group array', function () {
+    // Regression: a grouped array of SelectOption objects must activate rich
+    // rendering, not leak raw option objects into the native path (which threw
+    // a TypeError from isOptionDisabled()).
+    $select = mountSelect(AdvancedSelect::make('status')->options([
+        'base_options' => [
+            SelectOption::make('draft')->icon('heroicon-o-pencil-square')->label('Draft')->color('gray'),
+            SelectOption::make('accepted')->icon('heroicon-o-check-circle')->label('Accepted')->color('green'),
+        ],
+    ]));
+
+    $options = $select->getOptions();
+
+    expect($select->hasRichOptions())->toBeTrue()
+        ->and($options)->toHaveKey('base_options')
+        ->and($options['base_options'])->toHaveKeys(['draft', 'accepted'])
+        ->and($options['base_options']['draft'])->toContain('Draft')
+        ->and($options['base_options']['draft'])->toContain('<svg');
+
+    // The native JS transform (the path that crashed) now runs cleanly.
+    $payload = $select->getOptionsForJs();
+    $group = collect($payload)->firstWhere('label', 'base_options');
+
+    expect($group)->not->toBeNull()
+        ->and($group['options'][0]['value'])->toBe('draft')
+        ->and($group['options'][0]['isDisabled'] ?? false)->toBeFalse();
+});
+
 it('keeps a plain grouped array fully native', function () {
     $select = mountSelect(AdvancedSelect::make('status')->options([
         'Published' => ['live' => 'Live'],
