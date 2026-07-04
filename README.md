@@ -361,14 +361,17 @@ the segments animate to their new widths.
 > ->poll(fn (): ?string => TranslationRun::active()->exists() ? '3s' : null)
 > ```
 
-### AdvancedTextColumn
+### AdvancedTextColumn & AdvancedTextEntry
 
-A drop-in replacement for Filament's `TextColumn` with advanced ergonomics: text masking,
-contact links, affix images and icons, extra typography, a character count, and a rendering
-decorator pipeline. Every native `TextColumn` feature — `searchable()`, `sortable()`,
-`badge()`, `copyable()`, `limit()`, `dateTime()`, `money()`, descriptions, placeholders —
-keeps working untouched, because the native cell is rendered by `TextColumn` itself and
-only *wrapped* when an advanced feature needs it.
+Drop-in replacements for Filament's `TextColumn` (tables) and `TextEntry` (infolists) with
+advanced ergonomics: text masking, contact links, affix images and icons, extra typography,
+a character count, and a rendering decorator pipeline. Every native feature —
+`searchable()`, `sortable()`, `badge()`, `copyable()`, `limit()`, `dateTime()`, `money()`,
+descriptions, placeholders — keeps working untouched, because the native markup is rendered
+by the parent itself and only *wrapped* when an advanced feature needs it.
+
+Both components share one configuration API (the `HasAdvancedText` concern), so a
+configuration moves between a table and an infolist by swapping the class name.
 
 ```php
 use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\AdvancedTextColumn;
@@ -385,6 +388,23 @@ AdvancedTextColumn::make('email')
 
 Every option accepts a static value **or a closure** with Filament's usual `$record`,
 `$state`, `$livewire`, `$table`, and `$rowLoop` injections, evaluated lazily per cell.
+
+#### Infolists
+
+The same component is available as an infolist entry with an identical API. Decorations are
+injected inside the entry wrapper, so the label, hint, and helper text stay untouched:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\AdvancedTextEntry;
+
+AdvancedTextEntry::make('email')
+    ->copyable()
+    ->mailable()
+    ->maskEmail(fn (): bool => auth()->user()->cannot('viewSensitiveData'))
+    ->prefixIcon(Heroicon::Envelope);
+```
+
+Everything documented below applies to both classes.
 
 #### Masking
 
