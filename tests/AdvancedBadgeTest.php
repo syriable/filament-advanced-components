@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\AdvancedBadge;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeAnimations;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeRenderer;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeViewModel;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\RendersBadges;
 use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\AdvancedTextEntry;
 use Syriable\Filament\Plugins\AdvancedComponents\Tables\Columns\AdvancedTextColumn;
@@ -295,6 +296,105 @@ describe('interaction', function () {
 
         expect($html)->toContain('x-on:click="open = ! open"')
             ->and($html)->toContain('data-badge="alpine"');
+    });
+});
+
+describe('nested inside an interactive cell', function () {
+    it('degrades url badges to scripted role=link elements when the cell is a link', function () {
+        // A static column url wraps the whole cell in an <a> — nesting a
+        // real <a> badge inside would be invalid HTML.
+        $html = renderCell(
+            AdvancedTextColumn::make('status')
+                ->state('English')
+                ->url('https://example.com/record')
+                ->badges([
+                    AdvancedBadge::make('Verified')->url('https://www.google.com'),
+                ]),
+        );
+
+        expect($html)->toContain('role="link"')
+            ->and($html)->toContain('window.location.href')
+            // The url is embedded in a JS expression (slashes escaped).
+            ->and($html)->toContain('google.com')
+            // No nested anchor for the badge.
+            ->and($html)->not->toContain('<a ');
+    });
+
+    it('opens nested new-tab url badges via window.open', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')
+                ->state('English')
+                ->url('https://example.com/record')
+                ->badges([
+                    AdvancedBadge::make('External')->url('https://www.google.com', shouldOpenInNewTab: true),
+                ]),
+        );
+
+        expect($html)->toContain('window.open')
+            ->and($html)->toContain('_blank');
+    });
+
+    it('stops nested click handlers from triggering the cell link', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')
+                ->state('English')
+                ->url('https://example.com/record')
+                ->badges([
+                    AdvancedBadge::make('Wire')->wireClick('doThing'),
+                    AdvancedBadge::make('Alpine')->alpineClick('open = true'),
+                ]),
+        );
+
+        expect($html)->toContain('wire:click.prevent.stop="doThing"')
+            ->and($html)->toContain('x-on:click.stop.prevent="open = true"');
+    });
+
+    it('keeps real anchors when the cell is not interactive', function () {
+        $html = renderCell(
+            AdvancedTextColumn::make('status')
+                ->state('English')
+                ->badges([
+                    AdvancedBadge::make('Verified')->url('https://www.google.com'),
+                ]),
+        );
+
+        expect($html)->toContain('<a ')
+            ->and($html)->toContain('href="https://www.google.com"')
+            ->and($html)->not->toContain('role="link"');
+    });
+
+    it('does not treat per-cell state-based urls (mailable) as a wrapping link', function () {
+        // mailable() generates a state-based url that wraps only the
+        // content, so badges are safe as real anchors.
+        $html = renderCell(
+            AdvancedTextColumn::make('email')
+                ->state('jane@example.com')
+                ->mailable()
+                ->badges([
+                    AdvancedBadge::make('Verified')->url('https://www.google.com'),
+                ]),
+        );
+
+        expect($html)->toContain('href="mailto:jane@example.com"')
+            ->and($html)->toContain('<a ')
+            ->and($html)->toContain('href="https://www.google.com"')
+            ->and($html)->not->toContain('role="link"');
+    });
+
+    it('renders the view model directly for a nested link badge', function () {
+        $badge = new BadgeViewModel(
+            label: 'Verified',
+            url: 'https://www.google.com',
+            isClickable: true,
+            isNestedInInteractiveElement: true,
+        );
+
+        $html = app(RendersBadges::class)->render($badge);
+
+        expect($html)->toContain('<span')
+            ->and($html)->toContain('role="link"')
+            ->and($html)->toContain('tabindex="0"')
+            ->and($html)->not->toContain('<a ');
     });
 });
 

@@ -10,6 +10,7 @@ use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Concerns\HasAdvanc
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
 use Syriable\Filament\Plugins\AdvancedComponents\Infolists\Components\AdvancedTextEntry;
+use Throwable;
 
 /**
  * A drop-in replacement for {@see TextColumn} with advanced ergonomics:
@@ -57,5 +58,40 @@ class AdvancedTextColumn extends TextColumn
     protected function getAffixIconHtmlComponent(): string
     {
         return IconComponent::class;
+    }
+
+    /**
+     * Filament wraps a table cell in an `<a>` or `<button>` when the column
+     * has a (non-state-based) `url()`/`action()`, or the table has a
+     * `recordUrl`/`recordAction`. Interactive badges cannot be nested in
+     * such a wrapper, so they degrade to scripted, accessible elements when
+     * this returns `true`.
+     *
+     * State-based (per-cell) URLs — including the `mailable()` /
+     * `callable()` / `whatsappable()` links — wrap only the content, not the
+     * whole cell, so they never trigger this.
+     */
+    protected function areAdvancedBadgesNestedInInteractiveElement(): bool
+    {
+        if ($this->isClickDisabled() || $this->hasStateBasedUrls()) {
+            return false;
+        }
+
+        if (filled($this->getUrl()) || filled($this->getAction())) {
+            return true;
+        }
+
+        try {
+            $table = $this->getTable();
+            $record = $this->getRecord();
+        } catch (Throwable) {
+            return false;
+        }
+
+        if ($record === null) {
+            return false;
+        }
+
+        return filled($table->getRecordUrl($record)) || filled($table->getRecordAction($record));
     }
 }

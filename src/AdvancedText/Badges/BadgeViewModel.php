@@ -36,5 +36,6 @@ readonly class BadgeViewModel
         public ?string $url = null,
         public bool $shouldOpenUrlInNewTab = false,
         public bool $isClickable = false,
+        public bool $isNestedInInteractiveElement = false,
     ) {}
 }
