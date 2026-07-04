@@ -190,8 +190,8 @@ it('omits tooltips when they are disabled', function () {
 
 it('supports value and percentage formatting callbacks', function () {
     $column = MultiProgressColumn::make('progress')
-        ->formatValueUsing(fn (int | float $state): string => $state . ' items')
-        ->formatPercentageUsing(fn (float $state): string => number_format($state, 2) . ' %')
+        ->formatValueUsing(fn (int|float $state): string => $state.' items')
+        ->formatPercentageUsing(fn (float $state): string => number_format($state, 2).' %')
         ->showPercentage()
         ->showTotal()
         ->segments([['label' => 'Done', 'value' => 5]])

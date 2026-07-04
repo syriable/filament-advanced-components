@@ -42,46 +42,46 @@ trait HasMultiProgressBar
      *
      * @var array<int, string> | Closure
      */
-    protected array | Closure $fallbackColors = ['primary', 'success', 'warning', 'danger', 'info', 'gray'];
+    protected array|Closure $fallbackColors = ['primary', 'success', 'warning', 'danger', 'info', 'gray'];
 
     /**
      * @var array<int, Segment | array<string, mixed>> | Arrayable<int, mixed> | Closure | null
      */
-    protected array | Arrayable | Closure | null $segments = null;
+    protected array|Arrayable|Closure|null $segments = null;
 
-    protected int | float | Closure | null $total = null;
+    protected int|float|Closure|null $total = null;
 
-    protected bool | Closure $shouldShowPercentage = false;
+    protected bool|Closure $shouldShowPercentage = false;
 
-    protected bool | Closure $shouldShowTotal = false;
+    protected bool|Closure $shouldShowTotal = false;
 
-    protected bool | Closure $shouldShowLegend = false;
+    protected bool|Closure $shouldShowLegend = false;
 
-    protected bool | Closure $hasSegmentTooltips = true;
+    protected bool|Closure $hasSegmentTooltips = true;
 
-    protected bool | Closure $isAnimated = true;
+    protected bool|Closure $isAnimated = true;
 
-    protected bool | Closure $isStriped = false;
+    protected bool|Closure $isStriped = false;
 
-    protected bool | Closure $hasGradient = false;
+    protected bool|Closure $hasGradient = false;
 
-    protected bool | Closure $hasHoverEffect = false;
+    protected bool|Closure $hasHoverEffect = false;
 
-    protected bool | Closure $isCompact = false;
+    protected bool|Closure $isCompact = false;
 
-    protected bool | Closure $hasSkeleton = false;
+    protected bool|Closure $hasSkeleton = false;
 
-    protected Size | string | Closure $size = Size::Medium;
+    protected Size|string|Closure $size = Size::Medium;
 
-    protected int | string | Closure | null $height = null;
+    protected int|string|Closure|null $height = null;
 
-    protected int | Closure $gap = 0;
+    protected int|Closure $gap = 0;
 
-    protected int | string | Closure | null $borderRadius = null;
+    protected int|string|Closure|null $borderRadius = null;
 
-    protected int | float | Closure | null $minSegmentWidth = null;
+    protected int|float|Closure|null $minSegmentWidth = null;
 
-    protected string | Closure | null $valueSuffix = null;
+    protected string|Closure|null $valueSuffix = null;
 
     protected ?Closure $formatValueUsing = null;
 
@@ -127,7 +127,7 @@ trait HasMultiProgressBar
      *
      * @param  array<int, Segment | array<string, mixed>> | Arrayable<int, mixed> | Closure | null  $segments
      */
-    public function segments(array | Arrayable | Closure | null $segments): static
+    public function segments(array|Arrayable|Closure|null $segments): static
     {
         $this->segments = $segments;
 
@@ -141,7 +141,7 @@ trait HasMultiProgressBar
      * than the sum, the remainder renders as empty track — handy for showing
      * unfinished work implicitly.
      */
-    public function total(int | float | Closure | null $total): static
+    public function total(int|float|Closure|null $total): static
     {
         $this->total = $total;
 
@@ -153,7 +153,7 @@ trait HasMultiProgressBar
      *
      * @param  array<int, string> | Closure  $colors
      */
-    public function fallbackColors(array | Closure $colors): static
+    public function fallbackColors(array|Closure $colors): static
     {
         $this->fallbackColors = $colors;
 
@@ -170,7 +170,7 @@ trait HasMultiProgressBar
      * Shows the overall completion percentage to the right of the bar
      * (the sum of all segment values, relative to the total).
      */
-    public function showPercentage(bool | Closure $condition = true): static
+    public function showPercentage(bool|Closure $condition = true): static
     {
         $this->shouldShowPercentage = $condition;
 
@@ -180,7 +180,7 @@ trait HasMultiProgressBar
     /**
      * Shows the total count to the right of the bar, after the percentage.
      */
-    public function showTotal(bool | Closure $condition = true): static
+    public function showTotal(bool|Closure $condition = true): static
     {
         $this->shouldShowTotal = $condition;
 
@@ -191,7 +191,7 @@ trait HasMultiProgressBar
      * Renders a legend below the bar: one colored dot per segment with its
      * label, percentage, and optional badge.
      */
-    public function showLegend(bool | Closure $condition = true): static
+    public function showLegend(bool|Closure $condition = true): static
     {
         $this->shouldShowLegend = $condition;
 
@@ -202,7 +202,7 @@ trait HasMultiProgressBar
      * Toggles the per-segment tooltips. Enabled by default; each tooltip
      * shows the segment's label, formatted value, and percentage.
      */
-    public function segmentTooltips(bool | Closure $condition = true): static
+    public function segmentTooltips(bool|Closure $condition = true): static
     {
         $this->hasSegmentTooltips = $condition;
 
@@ -212,7 +212,7 @@ trait HasMultiProgressBar
     /**
      * A suffix appended to formatted values, e.g. `keys` → "420 keys".
      */
-    public function valueSuffix(string | Closure | null $suffix): static
+    public function valueSuffix(string|Closure|null $suffix): static
     {
         $this->valueSuffix = $suffix;
 
@@ -263,7 +263,7 @@ trait HasMultiProgressBar
     /**
      * A height preset: `xs`, `sm`, `md` (default), `lg` or `xl`.
      */
-    public function size(Size | string | Closure $size): static
+    public function size(Size|string|Closure $size): static
     {
         $this->size = $size;
 
@@ -274,7 +274,7 @@ trait HasMultiProgressBar
      * An explicit track height, overriding the {@see Size()} preset.
      * Integers are treated as pixels; strings as raw CSS lengths.
      */
-    public function height(int | string | Closure | null $height): static
+    public function height(int|string|Closure|null $height): static
     {
         $this->height = $height;
 
@@ -288,7 +288,7 @@ trait HasMultiProgressBar
      * inherit Filament's schema-level `gap()` toggle, which controls the
      * layout gap around the component and must keep working.
      */
-    public function segmentGap(int | Closure $pixels): static
+    public function segmentGap(int|Closure $pixels): static
     {
         $this->gap = $pixels;
 
@@ -299,7 +299,7 @@ trait HasMultiProgressBar
      * The track's border radius. Integers are treated as pixels; strings as
      * raw CSS values. Defaults to fully rounded (pill-shaped).
      */
-    public function borderRadius(int | string | Closure | null $radius): static
+    public function borderRadius(int|string|Closure|null $radius): static
     {
         $this->borderRadius = $radius;
 
@@ -309,7 +309,7 @@ trait HasMultiProgressBar
     /**
      * Squares off the track corners. Shorthand for `borderRadius(0)`.
      */
-    public function squared(bool | Closure $condition = true): static
+    public function squared(bool|Closure $condition = true): static
     {
         $this->borderRadius = fn (): ?string => $this->evaluate($condition) ? '0' : null;
 
@@ -321,7 +321,7 @@ trait HasMultiProgressBar
      * of the track, so tiny slices remain visible. Larger segments shrink
      * proportionally to compensate.
      */
-    public function minSegmentWidth(int | float | Closure | null $percentage): static
+    public function minSegmentWidth(int|float|Closure|null $percentage): static
     {
         $this->minSegmentWidth = $percentage;
 
@@ -332,7 +332,7 @@ trait HasMultiProgressBar
      * Animates segment width changes (e.g. after a Livewire poll or action).
      * Enabled by default.
      */
-    public function animated(bool | Closure $condition = true): static
+    public function animated(bool|Closure $condition = true): static
     {
         $this->isAnimated = $condition;
 
@@ -342,7 +342,7 @@ trait HasMultiProgressBar
     /**
      * Overlays diagonal stripes on the segments.
      */
-    public function striped(bool | Closure $condition = true): static
+    public function striped(bool|Closure $condition = true): static
     {
         $this->isStriped = $condition;
 
@@ -352,7 +352,7 @@ trait HasMultiProgressBar
     /**
      * Gives each segment a subtle horizontal gradient.
      */
-    public function gradient(bool | Closure $condition = true): static
+    public function gradient(bool|Closure $condition = true): static
     {
         $this->hasGradient = $condition;
 
@@ -362,7 +362,7 @@ trait HasMultiProgressBar
     /**
      * Brightens segments on hover, signalling their tooltips / links.
      */
-    public function hoverEffect(bool | Closure $condition = true): static
+    public function hoverEffect(bool|Closure $condition = true): static
     {
         $this->hasHoverEffect = $condition;
 
@@ -372,7 +372,7 @@ trait HasMultiProgressBar
     /**
      * Compact mode: a thinner bar, tighter typography, and no legend.
      */
-    public function compact(bool | Closure $condition = true): static
+    public function compact(bool|Closure $condition = true): static
     {
         $this->isCompact = $condition;
 
@@ -383,7 +383,7 @@ trait HasMultiProgressBar
      * Renders a pulsing skeleton bar instead of the empty-state placeholder
      * while the segments are empty — useful when data loads asynchronously.
      */
-    public function skeleton(bool | Closure $condition = true): static
+    public function skeleton(bool|Closure $condition = true): static
     {
         $this->hasSkeleton = $condition;
 
@@ -424,11 +424,11 @@ trait HasMultiProgressBar
                 }
 
                 if (! is_array($segment)) {
-                    throw new InvalidArgumentException('Each segment of a [' . static::class . '] must be an array or a [' . Segment::class . '] instance, [' . get_debug_type($segment) . '] given.');
+                    throw new InvalidArgumentException('Each segment of a ['.static::class.'] must be an array or a ['.Segment::class.'] instance, ['.get_debug_type($segment).'] given.');
                 }
 
                 if (! is_numeric($segment['value'] ?? null)) {
-                    throw new InvalidArgumentException('Each segment of a [' . static::class . '] must have a numeric [value].');
+                    throw new InvalidArgumentException('Each segment of a ['.static::class.'] must have a numeric [value].');
                 }
 
                 $segment['value'] = max(0, $segment['value'] + 0);
@@ -439,7 +439,7 @@ trait HasMultiProgressBar
         ));
     }
 
-    public function getTotal(): int | float | null
+    public function getTotal(): int|float|null
     {
         return $this->evaluate($this->total);
     }
@@ -499,7 +499,7 @@ trait HasMultiProgressBar
         return max(0, (int) $this->evaluate($this->gap));
     }
 
-    public function getMinSegmentWidth(): int | float | null
+    public function getMinSegmentWidth(): int|float|null
     {
         return $this->evaluate($this->minSegmentWidth);
     }
@@ -686,7 +686,7 @@ trait HasMultiProgressBar
      * @param  string | array<int, string> | null  $color
      * @return array{classes: array<int, string>, styles: string | null}
      */
-    protected function resolveSegmentColor(string | array | null $color, int $index): array
+    protected function resolveSegmentColor(string|array|null $color, int $index): array
     {
         if (blank($color)) {
             $fallback = $this->evaluate($this->fallbackColors) ?: ['primary'];
@@ -725,7 +725,7 @@ trait HasMultiProgressBar
      *
      * @param  array<string, mixed>  $segment
      */
-    protected function resolveSegmentTooltip(array $segment): string | Htmlable | null
+    protected function resolveSegmentTooltip(array $segment): string|Htmlable|null
     {
         if (filled($segment['tooltip'] ?? null)) {
             return $segment['tooltip'];
@@ -745,7 +745,7 @@ trait HasMultiProgressBar
         }
 
         $lines = array_filter([
-            filled($segment['label'] ?? null) ? ('<strong>' . e($segment['label']) . '</strong>') : null,
+            filled($segment['label'] ?? null) ? ('<strong>'.e($segment['label']).'</strong>') : null,
             e($formattedValue),
             e($formattedPercentage),
         ]);
@@ -756,7 +756,7 @@ trait HasMultiProgressBar
     /**
      * @param  array<string, mixed> | null  $segment
      */
-    protected function formatValue(int | float $value, ?array $segment = null): string
+    protected function formatValue(int|float $value, ?array $segment = null): string
     {
         if ($this->formatValueUsing instanceof Closure) {
             return (string) $this->evaluate($this->formatValueUsing, [
@@ -783,7 +783,7 @@ trait HasMultiProgressBar
         }
 
         // One decimal at most, and only when meaningful: 70%, 12.5%.
-        return round($percentage, 1) . '%';
+        return round($percentage, 1).'%';
     }
 
     /**
@@ -808,7 +808,7 @@ trait HasMultiProgressBar
         return implode(', ', $parts);
     }
 
-    protected function resolveIconHtml(string | BackedEnum | null $icon): ?Htmlable
+    protected function resolveIconHtml(string|BackedEnum|null $icon): ?Htmlable
     {
         if (blank($icon)) {
             return null;

@@ -27,7 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
  */
 class Segment implements Arrayable
 {
-    protected int | float $value = 0;
+    protected int|float $value = 0;
 
     /**
      * A Filament semantic color name (`success`, `warning`, `danger`, `info`,
@@ -37,11 +37,11 @@ class Segment implements Arrayable
      *
      * @var string | array<int, string> | null
      */
-    protected string | array | null $color = null;
+    protected string|array|null $color = null;
 
-    protected string | Htmlable | null $tooltip = null;
+    protected string|Htmlable|null $tooltip = null;
 
-    protected string | BackedEnum | null $icon = null;
+    protected string|BackedEnum|null $icon = null;
 
     protected ?string $badge = null;
 
@@ -69,7 +69,7 @@ class Segment implements Arrayable
      * The segment's magnitude. It may be a raw amount (e.g. `420` keys) or a
      * percentage — the column normalizes all values against the total.
      */
-    public function value(int | float $value): static
+    public function value(int|float $value): static
     {
         $this->value = $value;
 
@@ -79,7 +79,7 @@ class Segment implements Arrayable
     /**
      * @param  string | array<int, string> | null  $color
      */
-    public function color(string | array | null $color): static
+    public function color(string|array|null $color): static
     {
         $this->color = $color;
 
@@ -89,7 +89,7 @@ class Segment implements Arrayable
     /**
      * Overrides the auto-generated tooltip for this segment.
      */
-    public function tooltip(string | Htmlable | null $tooltip): static
+    public function tooltip(string|Htmlable|null $tooltip): static
     {
         $this->tooltip = $tooltip;
 
@@ -99,7 +99,7 @@ class Segment implements Arrayable
     /**
      * An icon shown inside the tooltip and the legend entry.
      */
-    public function icon(string | BackedEnum | null $icon): static
+    public function icon(string|BackedEnum|null $icon): static
     {
         $this->icon = $icon;
 

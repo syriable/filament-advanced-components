@@ -51,7 +51,7 @@ class MultiProgressColumn extends Column
      * the short name; infolist entries cannot, because they inherit
      * Filament's schema-level `gap()` toggle.
      */
-    public function gap(int | Closure $pixels): static
+    public function gap(int|Closure $pixels): static
     {
         return $this->segmentGap($pixels);
     }
