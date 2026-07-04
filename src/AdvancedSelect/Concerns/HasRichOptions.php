@@ -526,16 +526,28 @@ trait HasRichOptions
     }
 
     /**
-     * Whether an options input carries at least one {@see SelectOption}.
+     * Whether an options input carries at least one {@see SelectOption} —
+     * including inside a nested group array, e.g.
+     * `['Group' => [SelectOption::make(...)]]`, so a grouped rich list still
+     * activates rich rendering instead of leaking raw option objects into the
+     * native path.
      */
     protected function arrayContainsRichOptions(mixed $options): bool
     {
+        if ($options instanceof Arrayable) {
+            $options = $options->toArray();
+        }
+
         if (! is_array($options)) {
             return false;
         }
 
         foreach ($options as $option) {
             if ($option instanceof SelectOption) {
+                return true;
+            }
+
+            if ((is_array($option) || $option instanceof Arrayable) && $this->arrayContainsRichOptions($option)) {
                 return true;
             }
         }
