@@ -11,6 +11,7 @@ use Filament\Support\Contracts\HasLabel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\OptionViewModel;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Options\SelectOption;
@@ -108,6 +109,26 @@ enum LabelOnlyStatus: string implements HasLabel
     public function getLabel(): string
     {
         return ucfirst($this->value);
+    }
+}
+
+/**
+ * An enum implementing the package's own {@see HasBadge} contract (plus
+ * {@see HasColor} for the badge tint), to exercise enum-driven badges.
+ */
+enum BadgedTier: string implements HasBadge, HasColor
+{
+    case Free = 'free';
+    case Pro = 'pro';
+
+    public function getColor(): string
+    {
+        return $this === self::Pro ? 'success' : 'gray';
+    }
+
+    public function getBadge(): ?string
+    {
+        return $this === self::Pro ? 'Popular' : null;
     }
 }
 
@@ -615,4 +636,162 @@ it('activates rich enum rendering when a parallel map is added to a label-only e
     expect($select->hasRichOptions())->toBeTrue()
         ->and($select->getOptions()['draft'])->toContain('<svg')
         ->and($select->getOptions()['draft'])->toContain('Draft');
+});
+
+it('renders a badge from an enum implementing the HasBadge contract', function () {
+    $select = mountSelect(AdvancedSelect::make('tier')->options(BadgedTier::class));
+
+    $options = $select->getOptions();
+
+    expect($select->hasRichOptions())->toBeTrue()
+        ->and($options['pro'])->toContain('fi-adv-select-option-badge')
+        ->and($options['pro'])->toContain('Popular')
+        // The badge inherits the case's HasColor color.
+        ->and($options['pro'])->toContain('var(--color-success-600)')
+        // A null badge simply omits it.
+        ->and($options['free'])->not->toContain('fi-adv-select-option-badge');
+});
+
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
+
+it('places the description on its own line beneath the label and badge', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('published', 'Published')
+            ->icon('heroicon-o-globe-alt')
+            ->badge('Live')
+            ->description('Visible to everyone'),
+    ]))->getOptions()['published'];
+
+    // The label and badge share the head line; the description is a sibling
+    // in the body, after the head — so it sits below, not between them.
+    expect($html)->toContain('fi-adv-select-option-body')
+        ->and($html)->toContain('fi-adv-select-option-head')
+        ->and(strpos($html, 'fi-adv-select-option-badge'))->toBeLessThan(strpos($html, 'fi-adv-select-option-description'))
+        ->and(strpos($html, 'Live'))->toBeLessThan(strpos($html, 'Visible to everyone'));
+});
+
+it('omits the body wrapper structure gracefully when there is no description', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('draft', 'Draft')->badge('New'),
+    ]))->getOptions()['draft'];
+
+    expect($html)->toContain('fi-adv-select-option-head')
+        ->and($html)->toContain('Draft')
+        ->and($html)->toContain('New')
+        ->and($html)->not->toContain('fi-adv-select-option-description');
+});
+
+// ---------------------------------------------------------------------------
+// Grouping
+// ---------------------------------------------------------------------------
+
+it('renders rich options grouped via a nested array', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('status')
+            ->options([
+                'Published' => ['live' => 'Live', 'scheduled' => 'Scheduled'],
+                'Unpublished' => ['draft' => 'Draft'],
+            ])
+            ->icons(['live' => 'heroicon-o-globe-alt']),
+    );
+
+    $options = $select->getOptions();
+
+    expect($options)->toHaveKeys(['Published', 'Unpublished'])
+        ->and($options['Published'])->toHaveKeys(['live', 'scheduled'])
+        ->and($options['Published']['live'])->toContain('<svg')
+        ->and($options['Unpublished'])->toHaveKey('draft');
+});
+
+it('keeps a plain grouped array fully native', function () {
+    $select = mountSelect(AdvancedSelect::make('status')->options([
+        'Published' => ['live' => 'Live'],
+        'Unpublished' => ['draft' => 'Draft'],
+    ]));
+
+    expect($select->hasRichOptions())->toBeFalse()
+        ->and($select->isNative())->toBeTrue()
+        ->and($select->getOptions())->toBe([
+            'Published' => ['live' => 'Live'],
+            'Unpublished' => ['draft' => 'Draft'],
+        ]);
+});
+
+it('groups search results too', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('status')
+            ->searchable()
+            ->options([
+                SelectOption::make('live', 'Live')->group('Published'),
+                SelectOption::make('draft', 'Draft')->group('Unpublished'),
+            ]),
+    );
+
+    $results = $select->getSearchResults('Live');
+
+    expect($results)->toHaveKey('Published')
+        ->and($results['Published'])->toHaveKey('live')
+        ->and($results)->not->toHaveKey('Unpublished');
+});
+
+// ---------------------------------------------------------------------------
+// Base Select feature review
+// ---------------------------------------------------------------------------
+
+it('composes a per-option disabled() with a field-level disableOptionWhen()', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('status')
+            ->options([
+                SelectOption::make('draft', 'Draft'),
+                SelectOption::make('locked', 'Locked')->disabled(),
+                SelectOption::make('archived', 'Archived'),
+            ])
+            ->disableOptionWhen(fn (string $value): bool => $value === 'archived'),
+    );
+
+    // Both the per-option flag and the field-level callback take effect.
+    expect($select->isOptionDisabled('locked', 'Locked'))->toBeTrue()
+        ->and($select->isOptionDisabled('archived', 'Archived'))->toBeTrue()
+        ->and($select->isOptionDisabled('draft', 'Draft'))->toBeFalse();
+});
+
+it('supports multiple() with rich options', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('tags')
+            ->multiple()
+            ->options([
+                SelectOption::make('a', 'Alpha')->icon('heroicon-o-star'),
+                SelectOption::make('b', 'Beta'),
+            ]),
+    );
+
+    expect($select->isMultiple())->toBeTrue()
+        ->and($select->getOptions())->toHaveKeys(['a', 'b'])
+        ->and($select->getOptionLabels(false))->toBeArray();
+});
+
+it('leaves native helpers intact and defaults to a non-dehydration-breaking field', function () {
+    $select = mountSelect(
+        AdvancedSelect::make('status')
+            ->searchable()
+            ->selectablePlaceholder(false)
+            ->loadingMessage('Loading…')
+            ->noSearchResultsMessage('Nothing found')
+            ->optionsLimit(10)
+            ->options([SelectOption::make('draft', 'Draft')]),
+    );
+
+    expect($select->isSearchable())->toBeTrue()
+        ->and($select->getOptionsLimit())->toBe(10)
+        ->and($select->getLoadingMessage())->toBe('Loading…')
+        ->and($select->getNoSearchResultsMessage())->toBe('Nothing found');
+});
+
+it('still supports a native boolean() select', function () {
+    $select = mountSelect(AdvancedSelect::make('is_active')->boolean());
+
+    expect($select->hasRichOptions())->toBeFalse()
+        ->and($select->getOptions())->toHaveKeys([1, 0]);
 });

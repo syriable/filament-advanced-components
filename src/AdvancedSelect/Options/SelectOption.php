@@ -17,6 +17,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Traits\Conditionable;
 use Illuminate\View\ComponentAttributeBag;
 use InvalidArgumentException;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\HasBadge;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
 use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedSelect;
 use UnitEnum;
@@ -152,6 +153,10 @@ class SelectOption
 
         if ($case instanceof HasDescription) {
             $option->description($case->getDescription());
+        }
+
+        if ($case instanceof HasBadge) {
+            $option->badge($case->getBadge());
         }
 
         return $option;
