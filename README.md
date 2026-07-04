@@ -54,10 +54,11 @@ return [
 
 ## Usage
 
-### MultiProgressColumn & MultiProgressEntry
+### MultiProgressColumn, MultiProgressEntry & MultiProgressField
 
-A table column that renders a single progress bar divided into multiple colored segments —
-like the per-language progress bars on translation dashboards such as Crowdin or Lokalise.
+A single progress bar divided into multiple colored segments — like the per-language progress
+bars on translation dashboards such as Crowdin or Lokalise — available as a table column, an
+infolist entry, and a read-only form field, all with an identical configuration API.
 
 ```
 |███████████▓▓▓▓░░░░░░|  70% · 600 keys
@@ -131,9 +132,48 @@ MultiProgressEntry::make('translation_progress')
     ->showLegend();
 ```
 
-The only naming difference: segment spacing is `segmentGap()` (on both
-components), because infolist entries inherit Filament's schema-level `gap()`
-toggle. The table column additionally accepts `gap()` as an alias.
+The only naming difference: segment spacing is `segmentGap()` (on all
+components), because infolist entries and form fields inherit Filament's
+schema-level `gap()` toggle. The table column additionally accepts `gap()`
+as an alias.
+
+#### Forms
+
+`MultiProgressField` is the same bar as a real form field — with the standard
+field wrapper (label, helper text, hint, validation slot) around it:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\MultiProgressField;
+
+MultiProgressField::make('translation_progress')
+    ->label('Translation progress')
+    ->helperText('Updated automatically as the AI translation job runs.')
+    ->segments(fn (Language $record): array => [
+        ['label' => 'Translated', 'value' => $record->translated_count, 'color' => 'success'],
+        ['label' => 'Needs Review', 'value' => $record->review_count, 'color' => 'warning'],
+    ])
+    ->total(fn (Language $record): int => $record->keys_count)
+    ->showPercentage();
+```
+
+It is display-only — `dehydrated(false)` by default — so it never writes
+anything back on submit. Being a `Field`, though, it participates in form
+state: without a `segments()` closure it reads its own state path (so a model
+attribute or JSON cast holding a segments array hydrates it with zero
+configuration), and a closure receives `$get` to recompute the bar live as
+other fields change:
+
+```php
+MultiProgressField::make('budget_allocation')
+    ->segments(fn (Get $get): array => [
+        ['label' => 'Marketing', 'value' => (int) $get('marketing_budget'), 'color' => 'info'],
+        ['label' => 'Engineering', 'value' => (int) $get('engineering_budget'), 'color' => 'success'],
+    ])
+    ->total(fn (Get $get): int => (int) $get('total_budget'));
+```
+
+Pair it with `->live()` on the source inputs and the bar re-balances as the
+user types.
 
 #### Segment definition
 
