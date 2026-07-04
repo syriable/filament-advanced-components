@@ -12,6 +12,7 @@ use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\IconSize;
 use Filament\Support\Enums\Size;
 use Filament\Support\Facades\FilamentColor;
+use Filament\Tables\Columns\Concerns\CanBeHiddenResponsively;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Traits\Conditionable;
@@ -110,6 +111,10 @@ class AdvancedBadge
     protected bool | Closure $isVisible = true;
 
     protected bool | Closure $isHidden = false;
+
+    protected string | Closure | null $hiddenFrom = null;
+
+    protected string | Closure | null $visibleFrom = null;
 
     protected string | Closure | null $authorization = null;
 
@@ -396,6 +401,38 @@ class AdvancedBadge
     }
 
     /**
+     * Hide the badge from the given breakpoint upward — the same responsive
+     * API as Filament's columns
+     * ({@see CanBeHiddenResponsively}).
+     * Accepts `sm`, `md`, `lg`, `xl`, or `2xl`.
+     *
+     * ```php
+     * AdvancedBadge::make('Beta')->hiddenFrom('lg');
+     * ```
+     */
+    public function hiddenFrom(string | Closure | null $breakpoint): static
+    {
+        $this->hiddenFrom = $breakpoint;
+
+        return $this;
+    }
+
+    /**
+     * Only show the badge from the given breakpoint upward — hidden on
+     * smaller screens. Accepts `sm`, `md`, `lg`, `xl`, or `2xl`.
+     *
+     * ```php
+     * AdvancedBadge::make('Verified')->visibleFrom('md');
+     * ```
+     */
+    public function visibleFrom(string | Closure | null $breakpoint): static
+    {
+        $this->visibleFrom = $breakpoint;
+
+        return $this;
+    }
+
+    /**
      * Only render the badge when the current user passes the given gate
      * ability (checked against the record by default) or closure:
      *
@@ -600,6 +637,14 @@ class AdvancedBadge
             if ($evaluate($condition)) {
                 $classes[] = BadgeAnimations::resolve((string) $animation);
             }
+        }
+
+        if (filled($hiddenFrom = $evaluate($this->hiddenFrom))) {
+            $classes[] = 'fi-adv-badge-hidden-from-' . $hiddenFrom;
+        }
+
+        if (filled($visibleFrom = $evaluate($this->visibleFrom))) {
+            $classes[] = 'fi-adv-badge-visible-from-' . $visibleFrom;
         }
 
         $extraClasses = $evaluate($this->extraClasses);

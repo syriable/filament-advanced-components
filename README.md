@@ -565,6 +565,9 @@ The full builder API:
   `animation('wiggle')`. All accept a condition.
 - **Visibility** — `visible()`, `hidden()`, and `authorize()` (a gate ability checked
   against the record, or a closure).
+- **Responsive visibility** — `visibleFrom('md')` / `hiddenFrom('lg')` show or hide the badge
+  per screen size, using the same breakpoints (`sm`, `md`, `lg`, `xl`, `2xl`) as Filament's
+  column `visibleFrom()` / `hiddenFrom()`.
 - **Interaction** — `url($url, shouldOpenInNewTab: true)` renders a real anchor;
   `wireClick('method')` and `alpineClick('expression')` add Livewire / Alpine handlers with
   keyboard-accessible button semantics (`role="button"`, `tabindex`, Enter/Space);
