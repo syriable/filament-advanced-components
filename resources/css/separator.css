@@ -142,3 +142,23 @@
     flex-grow: 0;
     flex-basis: 1.5rem;
 }
+
+/*
+ * Color: when `->color()` is set, SeparatorRenderer resolves it to a single
+ * CSS value in `--fi-separator-color` and adds the `fi-separator-colored`
+ * marker class. The line is tinted by mixing that color with transparency so
+ * it stays a divider rather than a heavy rule, while the label and icon take
+ * the full color. The `color-mix()` keeps the tint readable in both themes
+ * without needing a separate dark-mode value.
+ */
+.fi-separator-colored .fi-separator-line {
+    border-color: color-mix(in oklab, var(--fi-separator-color) 60%, transparent);
+}
+
+.fi-separator-colored .fi-separator-label {
+    color: var(--fi-separator-color);
+}
+
+.fi-separator-colored .fi-separator-icon svg {
+    color: var(--fi-separator-color);
+}

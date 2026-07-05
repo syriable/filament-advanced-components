@@ -1147,6 +1147,26 @@ This isn't a closed set — `variant('brand')` accepts any string, and the rende
 matching `fi-separator-variant-brand` class for you to style in your own theme, so a custom
 variant needs no package changes.
 
+#### Color
+
+`color()` tints the line, label, and icon. It accepts the same three shapes as Filament's own
+`HasColor` concern — a registered color name, a raw `Color` palette array, or a literal CSS
+color — and every value may be a closure:
+
+```php
+use Filament\Support\Colors\Color;
+
+Separator::make('Danger Zone')->color('danger'); // a registered semantic name
+Separator::make()->color('info');                // any registered color
+Separator::make()->color(Color::Blue);           // a raw Color palette array
+Separator::make()->color('#22d3ee');             // a literal CSS color
+Separator::make()->color(fn (): string => 'success'); // resolved lazily
+```
+
+The line is tinted (mixed with transparency so it stays a divider, not a heavy rule) while the
+label and icon take the full color. With no `color()` call the separator keeps its neutral gray,
+and both themes are handled by a single `color-mix()` — no dark-mode value to pass.
+
 #### Spacing, width & alignment
 
 ```php

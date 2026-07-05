@@ -11,6 +11,7 @@
                 'fi-separator',
                 'fi-separator-horizontal' => ! $separator->isVertical(),
                 'fi-separator-vertical' => $separator->isVertical(),
+                'fi-separator-colored' => $separator->isColored(),
                 $separator->variantClass,
                 $separator->alignmentClass(),
             ])

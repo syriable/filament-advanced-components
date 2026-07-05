@@ -13,11 +13,13 @@ use Filament\Support\Components\Contracts\HasEmbeddedView;
 use Filament\Support\Concerns\Configurable;
 use Filament\Support\Concerns\EvaluatesClosures;
 use Filament\Support\Concerns\HasAlignment;
+use Filament\Support\Concerns\HasColor;
 use Filament\Support\Concerns\HasExtraAttributes;
 use Filament\Support\Concerns\HasIcon;
 use Filament\Support\Concerns\HasIconPosition;
 use Filament\Support\Concerns\Macroable;
 use Illuminate\Contracts\Support\Htmlable;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasOrientation;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasSpacing;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasVariant;
@@ -44,6 +46,9 @@ use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorVi
  *     ->text('OR')
  *     ->dashed()
  *     ->alignCenter();
+ *
+ * Separator::make('Danger Zone')
+ *     ->color('danger'); // a registered name, Color::Blue, or a raw '#22d3ee'
  * ```
  *
  * ## What it is not
@@ -79,8 +84,9 @@ use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorVi
  *  - {@see HasOrientation} — horizontal vs. vertical;
  *  - {@see HasVariant} — line pattern and tone, extensible with custom names;
  *  - {@see HasSpacing}, {@see HasWidth} — sizing;
- *  - `HasLabel`, `HasIcon`, `HasIconPosition`, `HasAlignment` — Filament's
- *    own concerns, reused as-is;
+ *  - `HasLabel`, `HasIcon`, `HasIconPosition`, `HasAlignment`, `HasColor` —
+ *    Filament's own concerns, reused as-is; the resolved color is turned into
+ *    a CSS value by {@see ColorResolver};
  *  - {@see SeparatorViewModel} —
  *    the resolved, render-ready state;
  *  - {@see RendersSeparator} — the swappable renderer, bound to
@@ -91,6 +97,7 @@ use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorVi
 class Separator extends Component implements HasEmbeddedView
 {
     use HasAlignment;
+    use HasColor;
     use HasIcon;
     use HasIconPosition;
     use HasLabel;
