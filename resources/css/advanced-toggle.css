@@ -1,0 +1,57 @@
+/*
+ * AdvancedToggle stylesheet.
+ *
+ * Hand-authored, dependency-free CSS registered through FilamentAsset, so
+ * the component works out of the box in any panel — no custom theme
+ * required. Follows the same conventions as the rest of this package:
+ *  - colors are read from the panel's registered gray scale (`--gray-*`);
+ *  - dark mode is driven by the `.dark` class Filament toggles on `<html>`.
+ *
+ * The confirmation wrapper (`.fi-advanced-toggle-ctn`) is `display: contents`
+ * — it exists only to capture a click before it reaches the native switch,
+ * and never affects layout. Its `.fi-advanced-toggle-pending` state (while a
+ * confirmation modal is being mounted) dims the switch itself
+ * (`.fi-toggle`, Filament's own class) rather than styling the wrapper,
+ * since a `display: contents` element renders no box of its own.
+ *
+ * `--fi-advanced-toggle-duration` is set per-render from `animationDuration()`
+ * (and collapses to `0s` when `animated(false)`), driving every transition
+ * this stylesheet defines.
+ */
+
+.fi-advanced-toggle-ctn {
+    display: contents;
+}
+
+.fi-advanced-toggle-ctn.fi-advanced-toggle-pending .fi-toggle {
+    cursor: wait;
+    opacity: 0.6;
+    transition: opacity var(--fi-advanced-toggle-duration, 150ms) ease;
+}
+
+.fi-advanced-toggle-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+    margin-top: 0.375rem;
+    transition: opacity var(--fi-advanced-toggle-duration, 150ms) ease;
+}
+
+.fi-advanced-toggle-description,
+.fi-advanced-toggle-disabled-reason {
+    flex-basis: 100%;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--gray-500);
+}
+
+.dark .fi-advanced-toggle-description,
+.dark .fi-advanced-toggle-disabled-reason {
+    color: var(--gray-400);
+}
+
+.fi-advanced-toggle-disabled-reason {
+    font-style: italic;
+}

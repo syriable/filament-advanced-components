@@ -15,6 +15,8 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Rendering\OptionRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Badges\BadgeRenderer;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\GeneratesLinks;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\MasksText;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\RendersBadges;
@@ -83,6 +85,11 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         // The Separator renderer. Rebind this to change how every separator
         // in the app renders, without subclassing the component.
         $this->app->singleton(RendersSeparator::class, SeparatorRenderer::class);
+
+        // The AdvancedToggle confirmation action builder. Rebind this to
+        // change how every confirmation modal is constructed globally,
+        // without subclassing the component.
+        $this->app->singleton(BuildsConfirmationAction::class, ConfirmationManager::class);
     }
 
     public function packageBooted(): void
@@ -128,6 +135,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
             AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
             AlpineComponent::make('otp-input', __DIR__ . '/../resources/dist/components/otp-input.js'),
             Css::make('advanced-select', __DIR__ . '/../resources/css/advanced-select.css'),
+            Css::make('advanced-toggle', __DIR__ . '/../resources/css/advanced-toggle.css'),
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
