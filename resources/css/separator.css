@@ -1,0 +1,144 @@
+/*
+ * Separator stylesheet.
+ *
+ * Hand-authored, dependency-free CSS registered through FilamentAsset, so
+ * the component works out of the box in any panel — no custom theme
+ * required. Follows the same conventions as Filament v5's own compiled CSS:
+ *  - colors are read from the panel's registered gray scale (`--gray-*`)
+ *    and mixed with `color-mix()`, so custom themes restyle it automatically;
+ *  - dark mode is driven by the `.dark` class Filament toggles on `<html>`.
+ *
+ * Per-instance sizing (width, spacing) is passed in from the Blade view
+ * through CSS custom properties, keeping this stylesheet static and
+ * cacheable:
+ *  - `--fi-separator-width`        line length (horizontal) or height (vertical)
+ *  - `--fi-separator-space-before` space before the separator
+ *  - `--fi-separator-space-after`  space after the separator
+ *  - `--fi-separator-content-gap`  gap between the line and the label/icon
+ */
+
+.fi-separator {
+    display: flex;
+    align-items: center;
+}
+
+.fi-separator-horizontal {
+    width: var(--fi-separator-width, 100%);
+    flex-direction: row;
+    margin-block-start: var(--fi-separator-space-before, 0px);
+    margin-block-end: var(--fi-separator-space-after, 0px);
+}
+
+.fi-separator-vertical {
+    height: var(--fi-separator-width, 100%);
+    flex-direction: column;
+    align-self: stretch;
+    margin-inline-start: var(--fi-separator-space-before, 0px);
+    margin-inline-end: var(--fi-separator-space-after, 0px);
+}
+
+/*
+ * The line itself. Only the side that matters for the current orientation
+ * gets a width — the other three stay at their initial `0`, so setting
+ * `border-style` / `border-color` as a shorthand below never draws
+ * anything on the wrong side.
+ */
+.fi-separator-line {
+    flex: 1 1 0%;
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--gray-950) 12%, transparent);
+}
+
+.dark .fi-separator-line {
+    border-color: color-mix(in oklab, var(--gray-200) 16%, transparent);
+}
+
+.fi-separator-horizontal .fi-separator-line {
+    border-top-width: 1px;
+}
+
+.fi-separator-vertical .fi-separator-line {
+    border-left-width: 1px;
+}
+
+/* Line pattern variants. */
+.fi-separator-variant-solid .fi-separator-line,
+.fi-separator-variant-default .fi-separator-line {
+    border-style: solid;
+}
+
+.fi-separator-variant-dashed .fi-separator-line {
+    border-style: dashed;
+}
+
+.fi-separator-variant-dotted .fi-separator-line {
+    border-style: dotted;
+}
+
+/* Tone variants. */
+.fi-separator-variant-subtle .fi-separator-line {
+    border-color: color-mix(in oklab, var(--gray-950) 6%, transparent);
+}
+
+.dark .fi-separator-variant-subtle .fi-separator-line {
+    border-color: color-mix(in oklab, var(--gray-200) 8%, transparent);
+}
+
+.fi-separator-variant-muted .fi-separator-line {
+    border-color: var(--gray-300);
+}
+
+.dark .fi-separator-variant-muted .fi-separator-line {
+    border-color: var(--gray-700);
+}
+
+/* The centered label / icon. */
+.fi-separator-content {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.375rem;
+    padding-inline: var(--fi-separator-content-gap, 0.75rem);
+}
+
+.fi-separator-vertical .fi-separator-content {
+    flex-direction: column;
+    padding-inline: 0;
+    padding-block: var(--fi-separator-content-gap, 0.75rem);
+}
+
+.fi-separator-label {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    white-space: nowrap;
+}
+
+.dark .fi-separator-label {
+    color: var(--gray-400);
+}
+
+.fi-separator-icon svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--gray-400);
+}
+
+.dark .fi-separator-icon svg {
+    color: var(--gray-500);
+}
+
+/*
+ * Alignment: shifts the label/icon off-center by shrinking one of the two
+ * lines down to a short stub instead of letting it grow to fill the space.
+ */
+.fi-separator-align-start .fi-separator-line:first-of-type {
+    flex-grow: 0;
+    flex-basis: 1.5rem;
+}
+
+.fi-separator-align-end .fi-separator-line:last-of-type {
+    flex-grow: 0;
+    flex-basis: 1.5rem;
+}

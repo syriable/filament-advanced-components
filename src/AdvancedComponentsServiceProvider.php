@@ -21,6 +21,8 @@ use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Contracts\RendersB
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\LinkGenerator;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\TextMasker;
 use Syriable\Filament\Plugins\AdvancedComponents\Commands\AdvancedComponentsCommand;
+use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
+use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\Testing\TestsAdvancedComponents;
 
 class AdvancedComponentsServiceProvider extends PackageServiceProvider
@@ -77,6 +79,10 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         // The AdvancedSelect option renderer. Rebind this to customize the
         // per-option markup globally without subclassing the component.
         $this->app->singleton(RendersOptions::class, OptionRenderer::class);
+
+        // The Separator renderer. Rebind this to change how every separator
+        // in the app renders, without subclassing the component.
+        $this->app->singleton(RendersSeparator::class, SeparatorRenderer::class);
     }
 
     public function packageBooted(): void
@@ -124,6 +130,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
+            Css::make('separator', __DIR__ . '/../resources/css/separator.css'),
         ];
     }
 
