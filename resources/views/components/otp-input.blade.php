@@ -97,7 +97,7 @@
                         x-on:input="onInput($event, {{ $index }})"
                         x-on:keydown="onKeydown($event, {{ $index }})"
                         x-on:paste="onPaste($event, {{ $index }})"
-                        x-on:focus="onFocus($event)"
+                        x-on:focus="onFocus($event, {{ $index }})"
                     />
                 @endforeach
             </div>

@@ -1265,8 +1265,18 @@ OtpInput::make('code')->group(3)->separator('•');             // any glyph
 OtpInput::make('code')->group(3)->separator(fn () => '-');    // or a closure
 ```
 
+Grouping and separators imply each other: `->group(3)` on its own renders the default `-`
+separator, and `->separator('•')` on its own enables the default grouping — so you only call the
+one you care about. An explicit configuration is never overwritten, and `->group(3)->separator(null)`
+keeps the grouping while dropping the separator.
+
 Grouping and separators are purely visual — never part of the stored value, and marked
 `aria-hidden` so screen readers announce a clean code.
+
+The cursor also always lands where typing should begin: clicking (or tabbing to) an empty cell
+ahead of the first unfilled one bounces focus back to that first unfilled cell, so a code can't be
+started from the middle; clicking a cell that already holds a character keeps focus there so it
+can be edited in place.
 
 **Private, autocomplete & auto-submit**
 

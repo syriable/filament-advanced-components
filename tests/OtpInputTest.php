@@ -76,6 +76,32 @@ it('exposes a customizable separator', function () {
         ->and(makeOtp()->getSeparator())->toBeNull();
 });
 
+it('auto-pairs grouping and separators, without overwriting explicit values', function () {
+    // group() alone applies the default separator.
+    $grouped = makeOtp()->length(6)->group(3);
+    expect($grouped->getGroups())->toBe([3, 3])
+        ->and($grouped->getSeparator())->toBe('-');
+
+    // separator() alone enables the default grouping.
+    $separated = makeOtp()->length(6)->separator('•');
+    expect($separated->isGrouped())->toBeTrue()
+        ->and($separated->getSeparator())->toBe('•');
+
+    // An explicit configuration on either side is never overwritten.
+    $explicit = makeOtp()->length(6)->group(2)->separator('|');
+    expect($explicit->getGroups())->toBe([2, 2, 2])
+        ->and($explicit->getSeparator())->toBe('|');
+
+    // Opt out of the auto-paired separator while keeping the grouping.
+    $noSeparator = makeOtp()->length(6)->group(3)->separator(null);
+    expect($noSeparator->isGrouped())->toBeTrue()
+        ->and($noSeparator->getSeparator())->toBeNull();
+
+    // Neither called: no grouping, no separator (unchanged default).
+    expect(makeOtp()->length(6)->isGrouped())->toBeFalse()
+        ->and(makeOtp()->length(6)->getSeparator())->toBeNull();
+});
+
 // ---------------------------------------------------------------------------
 // Private, autocomplete, auto-submit, appearance
 // ---------------------------------------------------------------------------
@@ -246,6 +272,21 @@ it('renders separators between groups', function () {
 
     expect($html)->toContain('fi-otp-input-separator')
         ->and(substr_count($html, 'fi-otp-input-group'))->toBe(2);
+});
+
+it('renders the auto-paired separator when only group() is set', function () {
+    $html = renderOtp(makeOtp('otp')->length(6)->group(3));
+
+    expect($html)->toContain('fi-otp-input-separator')
+        ->and(substr_count($html, 'fi-otp-input-group'))->toBe(2);
+});
+
+it('passes each cell index to the focus handler for click redirection', function () {
+    $html = renderOtp(makeOtp('otp')->length(3));
+
+    expect($html)->toContain('onFocus($event, 0)')
+        ->and($html)->toContain('onFocus($event, 1)')
+        ->and($html)->toContain('onFocus($event, 2)');
 });
 
 it('renders size, shape, and private classes', function () {

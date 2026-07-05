@@ -28,4 +28,15 @@ trait HasSeparator
 
         return filled($separator) ? (string) $separator : null;
     }
+
+    /**
+     * Whether `separator()` has been called at all — regardless of the value
+     * it was given (including an explicit `null` to opt out). Used to
+     * auto-pair grouping and separators without ever overwriting an explicit
+     * choice.
+     */
+    public function isSeparatorConfigured(): bool
+    {
+        return $this->separator !== null;
+    }
 }

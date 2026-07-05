@@ -35,6 +35,15 @@ trait HasGrouping
     }
 
     /**
+     * Whether `group()` has been called at all. Used to auto-pair grouping
+     * and separators without overwriting an explicit configuration.
+     */
+    public function isGroupingConfigured(): bool
+    {
+        return $this->group !== null;
+    }
+
+    /**
      * Resolves the configuration into a concrete list of group sizes that
      * always sums to the field's length. An empty/absent configuration
      * yields a single group spanning every cell.
