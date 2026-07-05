@@ -864,8 +864,17 @@ option itself), so nothing is evaluated until render time.
 | `group()` | Place the option under an optgroup heading. |
 | `classes()` / `extraAttributes()` | Extra CSS classes / HTML attributes on the option element. |
 
-Colors accept a semantic Filament name (`success`, `danger`, …), a `Color` palette array, or any
-literal CSS color.
+Colors accept a semantic Filament name (`success`, `danger`, …), a `Color` palette array (e.g.
+`Color::Blue` or `Color::hex('#8b5cf6')` from `Filament\Support\Colors\Color`), or any literal CSS
+color:
+
+```php
+use Filament\Support\Colors\Color;
+
+SelectOption::make('pro', 'Pro')
+    ->color(Color::Blue)
+    ->badge('New', Color::Amber);
+```
 
 #### Layering richness onto a plain list
 

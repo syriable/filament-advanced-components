@@ -69,7 +69,10 @@ class SelectOption
 
     protected string | BackedEnum | Closure | null $icon = null;
 
-    protected string | Closure | null $iconColor = null;
+    /**
+     * @var string | array<int | string, string | int> | Closure | null
+     */
+    protected string | array | Closure | null $iconColor = null;
 
     /**
      * @var string | array<int | string, string | int> | Closure | null
@@ -239,9 +242,12 @@ class SelectOption
 
     /**
      * Color of the leading icon only. Accepts a semantic Filament color name
-     * (`success`, `danger`, …) or any CSS color.
+     * (`success`, `danger`, …), a `Color` palette array (e.g. `Color::Blue`),
+     * or any CSS color.
+     *
+     * @param  string | array<int | string, string | int> | Closure | null  $color
      */
-    public function iconColor(string | Closure | null $color): static
+    public function iconColor(string | array | Closure | null $color): static
     {
         $this->iconColor = $color;
 
@@ -250,8 +256,13 @@ class SelectOption
 
     /**
      * The option's Filament color — a semantic name (`primary`, `success`, …)
-     * or a `Color` palette array. Tints the label and is inherited by the
-     * badge unless `badge()` overrides it.
+     * or a `Color` palette array (e.g. `Color::Blue`). Tints the label and is
+     * inherited by the badge unless `badge()` overrides it.
+     *
+     * ```php
+     * SelectOption::make('pro')->color('success');
+     * SelectOption::make('pro')->color(Color::Blue);
+     * ```
      *
      * @param  string | array<int | string, string | int> | Closure | null  $color
      */
@@ -279,6 +290,9 @@ class SelectOption
     }
 
     /**
+     * The badge's Filament color — a semantic name (`primary`, `success`, …)
+     * or a `Color` palette array (e.g. `Color::Blue`).
+     *
      * @param  string | array<int | string, string | int> | Closure | null  $color
      */
     public function badgeColor(string | array | Closure | null $color): static
