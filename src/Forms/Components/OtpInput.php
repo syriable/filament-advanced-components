@@ -77,9 +77,6 @@ class OtpInput extends Field
     use HasPrivateMode;
     use HasSeparator;
 
-    /**
-     * @var view-string
-     */
     protected string $view = 'filament-advanced-components::components.otp-input';
 
     protected function setUp(): void
