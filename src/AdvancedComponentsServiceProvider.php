@@ -126,11 +126,13 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
     {
         return [
             AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
+            AlpineComponent::make('otp-input', __DIR__ . '/../resources/dist/components/otp-input.js'),
             Css::make('advanced-select', __DIR__ . '/../resources/css/advanced-select.css'),
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
             Css::make('separator', __DIR__ . '/../resources/css/separator.css'),
+            Css::make('otp-input', __DIR__ . '/../resources/css/otp-input.css'),
         ];
     }
 

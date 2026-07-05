@@ -1,0 +1,192 @@
+/*
+ * OtpInput stylesheet.
+ *
+ * Hand-authored, dependency-free CSS registered through FilamentAsset, so the
+ * field works out of the box in any panel — no custom theme required. Follows
+ * Filament v5's conventions: colors come from the panel's registered palette
+ * (`--gray-*`, `--primary-*`, `--danger-*`), and dark mode is driven by the
+ * `.dark` class Filament toggles on `<html>`.
+ *
+ * Per-instance overrides arrive as CSS custom properties from the Blade view,
+ * keeping the stylesheet static and cacheable:
+ *   --fi-otp-cell-width  cell width override (else derived from the size)
+ *   --fi-otp-gap         gap between cells override
+ */
+
+.fi-otp-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.fi-otp-input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--fi-otp-gap, 0.5rem);
+}
+
+.fi-otp-input-separator {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--gray-400);
+    user-select: none;
+}
+
+.dark .fi-otp-input-separator {
+    color: var(--gray-500);
+}
+
+/* The cell. Sizing (width/height/font) is layered on by the size modifiers;
+   everything else — border, focus ring, colors — lives here. */
+.fi-otp-input-cell {
+    width: var(--fi-otp-cell-width, 2.75rem);
+    height: var(--fi-otp-cell-height, 3rem);
+    padding: 0;
+    text-align: center;
+    font-size: var(--fi-otp-cell-font-size, 1.125rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--gray-950);
+    background-color: var(--white, #fff);
+    border: 1px solid color-mix(in oklab, var(--gray-950) 20%, transparent);
+    border-radius: var(--fi-otp-cell-radius, 0.5rem);
+    outline: none;
+    transition:
+        border-color 75ms ease,
+        box-shadow 75ms ease;
+    -webkit-appearance: none;
+    appearance: none;
+    caret-color: var(--primary-600);
+}
+
+.dark .fi-otp-input-cell {
+    color: var(--gray-50);
+    background-color: var(--gray-900);
+    border-color: color-mix(in oklab, var(--gray-200) 20%, transparent);
+}
+
+.fi-otp-input-cell::placeholder {
+    color: var(--gray-400);
+    font-weight: 400;
+}
+
+.fi-otp-input-cell:hover {
+    border-color: color-mix(in oklab, var(--gray-950) 32%, transparent);
+}
+
+.dark .fi-otp-input-cell:hover {
+    border-color: color-mix(in oklab, var(--gray-200) 32%, transparent);
+}
+
+/* Focus: a 2px primary ring, matching Filament's own inputs. */
+.fi-otp-input-cell:focus {
+    border-color: var(--primary-600);
+    box-shadow: 0 0 0 1px var(--primary-600);
+}
+
+.dark .fi-otp-input-cell:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 1px var(--primary-500);
+}
+
+.fi-otp-input-cell:disabled {
+    cursor: not-allowed;
+    color: var(--gray-500);
+    background-color: var(--gray-50);
+    border-color: color-mix(in oklab, var(--gray-950) 12%, transparent);
+}
+
+.dark .fi-otp-input-cell:disabled {
+    color: var(--gray-400);
+    background-color: color-mix(in oklab, var(--gray-200) 5%, transparent);
+    border-color: color-mix(in oklab, var(--gray-200) 12%, transparent);
+}
+
+.fi-otp-input-cell:read-only {
+    background-color: var(--gray-50);
+}
+
+.dark .fi-otp-input-cell:read-only {
+    background-color: color-mix(in oklab, var(--gray-200) 5%, transparent);
+}
+
+/* Error state: red border, promoted to a ring on focus. */
+.fi-otp-input-has-error .fi-otp-input-cell {
+    border-color: var(--danger-600);
+}
+
+.fi-otp-input-has-error .fi-otp-input-cell:focus {
+    border-color: var(--danger-600);
+    box-shadow: 0 0 0 1px var(--danger-600);
+}
+
+.dark .fi-otp-input-has-error .fi-otp-input-cell {
+    border-color: var(--danger-500);
+}
+
+/* Private mode: a slightly larger mask glyph reads better centered. */
+.fi-otp-input-private .fi-otp-input-cell {
+    font-size: calc(var(--fi-otp-cell-font-size, 1.125rem) + 0.25rem);
+    line-height: 1;
+}
+
+/*
+ * Shape.
+ */
+.fi-otp-input-shape-square .fi-otp-input-cell {
+    --fi-otp-cell-radius: 0.125rem;
+}
+
+/*
+ * Sizes. Each preset sets the trio of custom properties the cell reads, so an
+ * explicit --fi-otp-cell-width from the view still wins over the preset.
+ */
+.fi-otp-input-size-compact .fi-otp-input-cell {
+    --fi-otp-cell-width: 2rem;
+    --fi-otp-cell-height: 2.25rem;
+    --fi-otp-cell-font-size: 0.875rem;
+    --fi-otp-cell-radius: 0.375rem;
+}
+
+.fi-otp-input-size-sm .fi-otp-input-cell {
+    --fi-otp-cell-width: 2.25rem;
+    --fi-otp-cell-height: 2.5rem;
+    --fi-otp-cell-font-size: 1rem;
+}
+
+.fi-otp-input-size-md .fi-otp-input-cell {
+    --fi-otp-cell-width: 2.75rem;
+    --fi-otp-cell-height: 3rem;
+    --fi-otp-cell-font-size: 1.125rem;
+}
+
+.fi-otp-input-size-lg .fi-otp-input-cell {
+    --fi-otp-cell-width: 3.25rem;
+    --fi-otp-cell-height: 3.75rem;
+    --fi-otp-cell-font-size: 1.5rem;
+    --fi-otp-cell-radius: 0.625rem;
+}
+
+/* Compact spacing on small viewports so a 6+ cell code never overflows. */
+@media (max-width: 480px) {
+    .fi-otp-input-group {
+        gap: var(--fi-otp-gap, 0.375rem);
+    }
+
+    .fi-otp-input-cell {
+        --fi-otp-cell-width: min(var(--fi-otp-cell-width, 2.75rem), 2.5rem);
+    }
+}
+
+/* Honor high-contrast / forced-colors modes. */
+@media (forced-colors: active) {
+    .fi-otp-input-cell {
+        border-color: CanvasText;
+    }
+
+    .fi-otp-input-cell:focus {
+        outline: 2px solid Highlight;
+        outline-offset: 1px;
+    }
+}

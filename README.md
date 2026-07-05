@@ -1206,6 +1206,105 @@ base schema `Component` for free — no extra API to learn.
 
 - **Macros** — `Separator` is `Macroable`, like every Filament component.
 
+### OtpInput
+
+A one-time-code / PIN field rendered as a row of single-character cells, backed by a single
+scalar string. It behaves like a first-party Filament field — `live()`, `afterStateUpdated()`,
+`formatStateUsing()`, validation, hydration, and dehydration all work exactly as on a
+`TextInput` — while all of the typing experience (auto-advance, backspace-to-previous, arrow /
+Home / End / Delete navigation, selection replacement, paste distribution, invalid-character
+rejection, masking, and auto-submit) happens client-side in an entangled Alpine component, so no
+Livewire round-trip is needed to move between cells.
+
+```text
+┌─┐┌─┐┌─┐   ┌─┐┌─┐┌─┐
+│1││2││3│ - │4││5││6│
+└─┘└─┘└─┘   └─┘└─┘└─┘
+```
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\OtpInput;
+
+OtpInput::make('code')
+    ->length(6);
+
+OtpInput::make('verification_code')
+    ->length(6)
+    ->numeric()
+    ->autocomplete()   // browser one-time-code (SMS / authenticator) autofill
+    ->autoSubmit()     // fire an `otp-completed` event once every cell is filled
+    ->group(3)         // render as 123 - 456
+    ->separator('-');
+```
+
+Despite the multiple cells, the field's value is one plain string — the separator-free code
+(`"123456"`) — sanitized to the configured mode and length on the way in and out, so whatever the
+browser sends, the stored value is always clean.
+
+**Length & mode**
+
+```php
+OtpInput::make('code')->length(4);
+OtpInput::make('code')->length(fn (): int => 6);   // lazily evaluated
+
+OtpInput::make('code')->numeric();        // 0-9 (the default), numeric mobile keyboard
+OtpInput::make('code')->alphabetic();     // A-Z, a-z
+OtpInput::make('code')->alphanumeric();   // A-Z, a-z, 0-9
+```
+
+The chosen mode drives client-side keystroke filtering, the mobile `inputmode`, **and** the
+server-side validation rule — from one source of truth — so an exact-length, correct-alphabet
+code is enforced on both ends automatically (empty optional values are left to `required()`).
+
+**Grouping & separators**
+
+```php
+OtpInput::make('code')->length(6)->group(3);                 // 123 - 456
+OtpInput::make('code')->length(7)->group([2, 3, 2]);          // uneven groups
+OtpInput::make('code')->group(3)->separator('•');             // any glyph
+OtpInput::make('code')->group(3)->separator(fn () => '-');    // or a closure
+```
+
+Grouping and separators are purely visual — never part of the stored value, and marked
+`aria-hidden` so screen readers announce a clean code.
+
+**Private, autocomplete & auto-submit**
+
+```php
+OtpInput::make('recovery_code')->private();                  // masks each cell like a password
+OtpInput::make('recovery_code')->private()->maskCharacter('*');
+
+OtpInput::make('code')->autocomplete();                      // autocomplete="one-time-code" on cell 1
+
+OtpInput::make('code')->autoSubmit();                        // dispatch `otp-completed` when full
+OtpInput::make('code')->autoSubmit('verify');               // …and call the `verify` Livewire method
+```
+
+`autoSubmit()` dispatches a cancelable `otp-completed` browser event carrying the value (listen
+with `x-on:otp-completed`, or on the Livewire root, to submit the surrounding form); passing a
+method name additionally calls that Livewire method directly.
+
+**Appearance**
+
+```php
+OtpInput::make('code')->large();      // or ->compact(), ->small()
+OtpInput::make('code')->square();     // or ->rounded() (default)
+OtpInput::make('code')->cellWidth(48)->cellGap('0.75rem');
+```
+
+Everything from the base field — `label()`, `hiddenLabel()`, `helperText()`, `hint()`,
+`placeholder()`, `required()`, `disabled()`, `readOnly()`, `autofocus()`, `rules()`,
+`extraAttributes()` — works as usual. All configuration accepts closures.
+
+**Accessibility.** The row is a `role="group"` labeled by the field label; each cell carries a
+`Character N of M` label, `aria-invalid` flips on when validation fails, focus is managed on every
+keystroke, and a `forced-colors` block keeps it usable in high-contrast mode.
+
+**Extensibility.** `OtpInput` is `Macroable` and supports `configureUsing()` for presets; the
+per-cell character policy, `inputmode`, and validation regex all derive from the `OtpMode` enum,
+and the Alpine layer is split into small, replaceable managers (state, focus, keyboard,
+clipboard).
+
 ## Testing
 
 ```bash
