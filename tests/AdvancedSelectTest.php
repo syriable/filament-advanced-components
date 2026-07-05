@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Filament\Schemas\Schema;
+use Filament\Support\Colors\Color;
 use Filament\Support\Components\ViewComponent;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasDescription;
@@ -724,6 +725,29 @@ it('resolves a registered color to its bare Filament CSS variable, not a color-p
 
     expect($html)->toContain('var(--danger-600)')
         ->and($html)->not->toContain('var(--color-danger-600)');
+});
+
+it('resolves a raw Color palette array to its shade-600 value, for both the label and the badge', function () {
+    // `Color::Blue` (and any other `Color::*` constant, or a custom
+    // `Color::hex()`/`Color::rgb()` palette) is a plain `[shade => value]`
+    // array with no registered alias to reference via a CSS variable, so it
+    // must be indexed directly for the requested shade instead — mirroring
+    // what Filament's own `get_color_css_variables()` helper does for an
+    // unregistered array color.
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->color(Color::Blue)->badge('New', Color::Amber),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('--fi-adv-select-option-color: ' . Color::Blue[600])
+        ->and($html)->toContain('--fi-adv-select-badge-color: ' . Color::Amber[600]);
+});
+
+it('resolves a raw Color palette array for the icon color too', function () {
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->icon('heroicon-o-star')->iconColor(Color::Emerald),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('color: ' . Color::Emerald[600]);
 });
 
 // ---------------------------------------------------------------------------

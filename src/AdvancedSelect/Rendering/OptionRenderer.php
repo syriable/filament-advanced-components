@@ -71,7 +71,7 @@ class OptionRenderer implements RendersOptions
         $attributes = (new ComponentAttributeBag($option->extraAttributes))
             ->class([...$baseClasses, ...$option->extraClasses]);
 
-        if ($option->color !== null && is_string($option->color)) {
+        if (filled($option->color)) {
             $attributes = $attributes->style([
                 '--fi-adv-select-option-color: ' . ColorResolver::toCss($option->color),
             ]);
@@ -100,7 +100,7 @@ class OptionRenderer implements RendersOptions
             'fi-adv-select-option-badge-end' => $option->badgeAtEnd(),
         ]);
 
-        if (is_string($option->badgeColor)) {
+        if (filled($option->badgeColor)) {
             $attributes = $attributes->style([
                 '--fi-adv-select-badge-color: ' . ColorResolver::toCss($option->badgeColor),
             ]);

@@ -9,9 +9,18 @@ use Filament\Support\Facades\FilamentColor;
 /**
  * Maps colors expressed as Filament configuration onto concrete CSS values.
  *
- * A registered Filament color name (`primary`, `success`, custom palette
- * names, …) becomes its theme CSS variable; anything else is treated as a
- * literal CSS color and passed through untouched.
+ * Three shapes are accepted, mirroring what Filament's own `HasColor` concern
+ * allows:
+ *
+ * - A registered Filament color name (`primary`, `success`, custom palette
+ *   names, …) becomes its theme CSS variable.
+ * - A raw `Color` palette array (e.g. `Color::Blue`, or any
+ *   `[shade => value]` array) is not registered under any name, so it is
+ *   indexed directly for the requested shade instead — the same thing
+ *   Filament's own `get_color_css_variables()` helper does for an unregistered
+ *   array color.
+ * - Anything else is treated as a literal CSS color and passed through
+ *   untouched.
  *
  * Filament exposes each registered color's shades at `:root` as bare
  * `--{name}-{shade}` custom properties (see `FilamentAsset`'s asset view,
@@ -23,8 +32,15 @@ final class ColorResolver
 {
     private function __construct() {}
 
-    public static function toCss(string $color, int $shade = 600): string
+    /**
+     * @param  string | array<int | string, string>  $color
+     */
+    public static function toCss(string | array $color, int $shade = 600): string
     {
+        if (is_array($color)) {
+            return $color[$shade] ?? reset($color) ?: '';
+        }
+
         if (array_key_exists($color, FilamentColor::getColors())) {
             return "var(--{$color}-{$shade})";
         }
