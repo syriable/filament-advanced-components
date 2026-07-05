@@ -1315,6 +1315,269 @@ per-cell character policy, `inputmode`, and validation regex all derive from the
 and the Alpine layer is split into small, replaceable managers (state, focus, keyboard,
 clipboard).
 
+### AdvancedToggle
+
+A drop-in superset of Filament's `Toggle` whose core feature is a confirmation modal gating
+every state change — built entirely on Filament's own `Action` and action-modal
+infrastructure, not a bespoke dialog.
+
+```
+false ──click──▶ [ modal: "Enable Feature?" ] ──confirm──▶ true
+  ▲                                    │
+  └──────────────cancel────────────────┘
+```
+
+**The guarantee:** without `requiresConfirmation()`, an `AdvancedToggle` renders and behaves
+byte-for-byte like a native `Toggle`. The moment it's used, the switch **cannot** flip, revert,
+or flicker on its own — the click is intercepted client-side *before* it ever reaches the
+entangled Livewire property, and the value only ever changes as the result of a real,
+server-side confirmed action call. There is no "set then undo": the previous state is simply
+never touched unless confirmation succeeds.
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedToggle;
+
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation(
+        title: 'Enable feature',
+        description: 'Are you sure you want to enable this for everyone?',
+    );
+```
+
+Clicking the toggle opens a confirmation modal; the switch stays put until the user confirms.
+Cancelling — or dismissing the modal any other way — leaves the value untouched.
+
+#### Confirmation appearance
+
+Every option accepts a static value **or** a closure, and can be set either inline via
+`requiresConfirmation()`'s named arguments, or through a dedicated fluent setter:
+
+```php
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation(
+        title: 'Enable feature',        // alias: heading (heading wins if both are set)
+        description: 'Are you sure?',
+        icon: 'heroicon-o-bolt',
+        iconColor: 'warning',
+        width: 'sm',
+        alignment: 'center',
+        confirmButtonLabel: 'Yes, enable it',
+        cancelButtonLabel: 'Never mind',
+        confirmButtonColor: 'success',
+        cancelButtonColor: 'gray',
+    );
+
+// Equivalent, one setter at a time:
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation()
+    ->confirmationTitle('Enable feature')
+    ->confirmationDescription(fn ($record) => "Enable this for {$record->name}?")
+    ->confirmationIcon('heroicon-o-bolt')
+    ->confirmationIconColor('warning')
+    ->confirmationWidth('sm')
+    ->confirmationAlignment('center')
+    ->confirmationConfirmButtonLabel('Yes, enable it')
+    ->confirmationCancelButtonLabel('Never mind')
+    ->confirmationConfirmButtonColor('success')
+    ->confirmationCancelButtonColor('gray');
+```
+
+#### Custom modal content & validation
+
+`confirmationSchema()` accepts any Filament schema components — the confirmation modal is a
+real Filament action form, so validation, hydration, and every native field behave exactly as
+they would anywhere else:
+
+```php
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation()
+    ->confirmationSchema([
+        TextInput::make('password')->password()->required(),
+        Textarea::make('reason'),
+    ]);
+```
+
+If validation fails, Filament's own action-modal validation keeps the modal open and reports
+the errors inline — the toggle's state is never touched, because the confirmation callback
+never runs.
+
+#### Callbacks
+
+```php
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation()
+    ->confirmationSchema([TextInput::make('reason')])
+    ->onConfirm(function (bool $newState, bool $oldState, array $data) {
+        // Runs before the state commits. Throw to reject the change (see below).
+        AuditLog::create(['reason' => $data['reason']]);
+    })
+    ->onCancel(function (bool $oldState) {
+        Log::info('Toggle change cancelled');
+    })
+    ->afterConfirmed(function (bool $newState, bool $oldState) {
+        // Runs after the new state has been committed — ideal for audit logging.
+    });
+```
+
+`onCancel()` only costs a request when it's actually registered: with no `onCancel()`
+callback, cancelling stays Filament's native, instant client-side dismissal.
+
+#### Conditional confirmation
+
+```php
+AdvancedToggle::make('enabled')->requiresConfirmation(); // always
+
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation(fn ($record) => $record->isProtected()); // per record
+
+AdvancedToggle::make('enabled')->requiresConfirmation(onlyWhenTurningOn: true);
+AdvancedToggle::make('enabled')->requiresConfirmation(onlyWhenTurningOff: true);
+```
+
+The condition closure also receives `$newState` and `$oldState`, for logic that depends on the
+direction *and* something else (the current user, a related model, ...).
+
+#### Asynchronous confirmation & failure handling
+
+`onConfirm()` can safely perform database work — it runs inside the same database transaction
+Filament wraps every action call in. Throwing rejects the change:
+
+```php
+AdvancedToggle::make('enabled')
+    ->requiresConfirmation()
+    ->onConfirm(function (bool $newState) {
+        if (! app(FeatureGate::class)->canEnable()) {
+            throw new RuntimeException('This feature is at capacity.');
+        }
+
+        app(FeatureGate::class)->enable();
+    })
+    ->confirmationFailureNotification(
+        fn (Throwable $exception) => Notification::make()
+            ->danger()
+            ->title('Could not enable feature')
+            ->body($exception->getMessage()),
+    )
+    ->keepConfirmationModalOpenOnFailure(); // default; ->closeConfirmationModalOnFailure() to close instead
+```
+
+Any database writes made before the exception are rolled back automatically. Pass `null` to
+`confirmationFailureNotification()` to disable the notification entirely.
+
+#### Dynamic labels, icons, colors & descriptions
+
+`onIcon()`, `offIcon()`, `onColor()`, `offColor()`, and `inline()` are already native to
+`Toggle` and work exactly as documented in
+[Filament's own docs](https://filamentphp.com/docs/5.x/forms/toggle) — `AdvancedToggle` adds
+labels, descriptions, tooltips, and a badge, one per state:
+
+```php
+AdvancedToggle::make('enabled')
+    ->onColor('success')->offColor('danger')                       // native
+    ->onIcon('heroicon-o-check')->offIcon('heroicon-o-x-mark')     // native
+    ->onLabel('Enabled')->offLabel('Disabled')
+    ->onDescription('Users can access this feature.')->offDescription('Feature is disabled.')
+    ->onTooltip('Click to disable')->offTooltip('Click to enable')
+    ->onBadge('Enabled', 'success')->offBadge('Disabled', 'gray');
+```
+
+The badge label/color both accept closures, so a badge isn't limited to describing the raw
+boolean:
+
+```php
+->offBadge(fn ($record) => $record->archived_at ? 'Archived' : 'Disabled')
+```
+
+#### Read-only reasons
+
+```php
+AdvancedToggle::make('enabled')
+    ->disabled(fn ($record) => $record->is_locked)
+    ->disabledReason(fn ($record) => $record->is_locked
+        ? 'Disabled because this record is locked.'
+        : null);
+```
+
+The reason only ever renders while the field is genuinely disabled.
+
+#### Animations
+
+```php
+->animated()              // on by default
+->animationDuration(250);  // milliseconds
+```
+
+Controls the package's own additions (state description/badge transitions, the dimmed
+"confirming" state) — the native switch already animates its own thumb and track.
+
+#### Standalone (non-panel) usage
+
+Inside a Filament panel, this all works with zero setup. Using `AdvancedToggle` on a plain
+Livewire component (outside a panel), give it the same two things Filament's own
+`Select::createOptionAction()` needs:
+
+```php
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+
+class EditSettings extends Component implements HasActions, HasForms
+{
+    use InteractsWithActions;
+    use InteractsWithForms;
+}
+```
+
+```blade
+{{-- somewhere in the Livewire view --}}
+{{ $this->form }}
+
+<x-filament-actions::modals />
+```
+
+#### Architecture
+
+Responsibilities are split across small, single-purpose collaborators:
+
+- `HasConfirmation`, `HasConfirmationForm` — the fluent configuration API;
+- `ConfirmationManager` — turns that configuration into a real `Filament\Actions\Action`,
+  reusing Filament's action-modal architecture entirely (heading, description, icon, width,
+  alignment, footer buttons, schema validation, database transactions, notifications — nothing
+  is reimplemented);
+- `HasStateLabels`, `HasStateDescriptions`, `HasStateTooltips`, `HasStateBadge`,
+  `HasDisabledReason`, `HasAnimations` — the smaller, independent presentation features;
+- `ToggleViewModel` — the resolved, render-ready state the Blade view reads, so nothing is
+  re-evaluated (or re-derived in JavaScript) more than once per render.
+
+Swap how the confirmation action is built globally by rebinding
+`Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction`,
+or per-instance with `->buildConfirmationActionUsing(new MyConfirmationManager())` — the same
+extension point this package uses for `RendersOptions` and `RendersSeparator`.
+
+#### Accessibility
+
+The switch is Filament's own native `role="switch"` button, untouched. The click-interception
+wrapper adds `aria-busy` while a confirmation is being mounted and never intercepts a disabled
+field (a native `disabled` button never dispatches a click event in the first place, so nothing
+extra is needed there).
+
+#### Performance
+
+The state never mutates — and the Livewire component never re-renders — until confirmation
+actually succeeds, so an unconfirmed click costs exactly one small request (mounting the
+action) instead of a state update plus a corrective revert. Every confirmation option is
+resolved once per render into a single `ToggleViewModel`; the two booleans that decide whether
+a given click needs to be intercepted at all (`requiresConfirmationWhenTurningOn` /
+`requiresConfirmationWhenTurningOff`) are computed server-side, so the client never re-derives
+configuration — including whether to render the interception wrapper at all, which is skipped
+entirely once neither direction currently requires confirmation.
+
 ## Testing
 
 ```bash
