@@ -65,6 +65,14 @@ export default function otpInput(config) {
             return this.value.length === this.length
         },
 
+        // The first still-empty cell — where typing must begin — or the last
+        // cell when the code is already full.
+        firstEmptyIndex() {
+            const index = this.digits.findIndex((digit) => (digit ?? '') === '')
+
+            return index === -1 ? this.length - 1 : index
+        },
+
         // What a given cell should show: nothing when empty, the mask glyph
         // in private mode, otherwise the real character.
         displayValue(index) {
@@ -162,7 +170,22 @@ export default function otpInput(config) {
             this.clipboard.handle(event, index)
         },
 
-        onFocus(event) {
+        onFocus(event, index) {
+            // You can't start filling from the middle: focusing (by click or
+            // Tab) an empty cell that sits *ahead* of the first still-empty
+            // cell bounces the caret back to where typing must begin. A cell
+            // that already holds a value keeps focus so it can be edited in
+            // place — and typing there advances to the next cell as usual.
+            if ((this.digits[index] ?? '') === '') {
+                const target = this.firstEmptyIndex()
+
+                if (target < index) {
+                    this.focus.index(target)
+
+                    return
+                }
+            }
+
             // Select the cell so the next keystroke replaces its content.
             event.target.select()
         },

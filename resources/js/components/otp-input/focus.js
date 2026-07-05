@@ -44,10 +44,6 @@ export class FocusManager {
     // The first empty cell, or the last cell when the code is already full —
     // where focus should land when the field is focused as a whole.
     firstEmpty() {
-        const emptyIndex = this.component.digits.findIndex(
-            (digit) => (digit ?? '') === '',
-        )
-
-        this.index(emptyIndex === -1 ? this.component.length - 1 : emptyIndex)
+        this.index(this.component.firstEmptyIndex())
     }
 }

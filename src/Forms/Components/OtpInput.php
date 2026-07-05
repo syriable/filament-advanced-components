@@ -69,15 +69,48 @@ class OtpInput extends Field
     use HasAutocomplete;
     use HasAutoSubmit;
     use HasExtraAlpineAttributes;
-    use HasGrouping;
+    use HasGrouping {
+        group as configureGrouping;
+    }
     use HasLength;
     use HasMode;
     use HasOtpAppearance;
     use HasPlaceholder;
     use HasPrivateMode;
-    use HasSeparator;
+    use HasSeparator {
+        separator as configureSeparator;
+    }
 
     protected string $view = 'filament-advanced-components::components.otp-input';
+
+    /**
+     * Grouping and separators imply each other: calling one applies the
+     * other's default (a group of three, a `-` separator) *only* when the
+     * other hasn't been configured, so `->group(3)` and `->separator('•')`
+     * each stand alone while an explicit configuration is never overwritten.
+     * Opt out of the auto-paired separator with `->separator(null)`.
+     */
+    public function group(int | array | Closure | null $size = 3): static
+    {
+        $this->configureGrouping($size);
+
+        if (! $this->isSeparatorConfigured()) {
+            $this->configureSeparator();
+        }
+
+        return $this;
+    }
+
+    public function separator(string | Closure | null $separator = '-'): static
+    {
+        $this->configureSeparator($separator);
+
+        if (! $this->isGroupingConfigured()) {
+            $this->configureGrouping();
+        }
+
+        return $this;
+    }
 
     protected function setUp(): void
     {
