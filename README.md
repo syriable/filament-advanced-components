@@ -1064,6 +1064,128 @@ you only when rich options are active. Labels, descriptions, and badge text are 
 only trusted, developer-authored icon SVGs are emitted raw — never pass unsanitised user input as
 option HTML.
 
+### Separator
+
+A purely visual layout component for a Schema (form or infolist) — the divider equivalent of
+`Section`, `Grid`, or `Fieldset`. It draws a line, optionally split by a centered label and/or
+icon, and nothing else: no field name, no state, no validation, no dehydrated value.
+
+```
+──────────────  General Information  ──────────────
+
+────────────────────────  OR  ───────────────────────
+
+┊
+┊  (vertical, inside a Flex)
+┊
+```
+
+**What it looks like:**
+
+- *Plain divider:* `Separator::make()` — a single full-width line, exactly like an HTML `<hr>`.
+- *Labeled:* `Separator::make('General Information')` — the line splits around a small, muted,
+  centered label.
+- *Decorative:* `Separator::make()->text('OR')` — `text()` is an alias for `label()`, reading
+  naturally for a divider that isn't introducing a new section.
+- *Dark mode:* the line color is read from the panel's gray scale, so custom themes restyle it
+  automatically.
+
+Because it extends the same base `Filament\Schemas\Components\Component` that `Section`, `Grid`,
+and `Fieldset` do — rather than `Entry` or `Field` — a `Separator` never reads or writes state,
+never needs a name, and never appears in a form's submitted payload.
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Schemas\Components\Separator;
+
+Separator::make();
+
+Separator::make('General Information');
+
+Separator::make()
+    ->label('Billing')
+    ->icon('heroicon-o-credit-card');
+
+Separator::make()
+    ->text('OR')
+    ->dashed()
+    ->alignCenter();
+```
+
+#### Label & icon
+
+`label()` accepts a string, an `Htmlable`, or a closure evaluated lazily like everything else in
+Filament. `hiddenLabel()` keeps the separator visible while removing the label:
+
+```php
+Separator::make('Billing')->hiddenLabel(fn (): bool => ! auth()->user()->isAdmin());
+```
+
+`icon()` / `iconPosition('before' | 'after')` place a small icon next to the label, using
+Filament's own `HasIcon` / `HasIconPosition` concerns — any Blade icon name or `Heroicon` case
+works.
+
+#### Orientation
+
+```php
+Separator::make()->horizontal(); // default: a full-width line
+Separator::make()->vertical();   // a full-height line, for use inside a Flex/Grid
+```
+
+#### Variants
+
+`default()`, `subtle()`, `muted()` control the line's tone; `solid()`, `dashed()`, `dotted()`
+control its pattern:
+
+```php
+Separator::make()->dashed();
+Separator::make()->subtle();
+```
+
+This isn't a closed set — `variant('brand')` accepts any string, and the renderer attaches a
+matching `fi-separator-variant-brand` class for you to style in your own theme, so a custom
+variant needs no package changes.
+
+#### Spacing, width & alignment
+
+```php
+Separator::make()
+    ->margin('lg')        // space before AND after (Size preset, raw CSS length, or px int)
+    ->padding(12)          // gap between the line and the label/icon
+    ->spaceBefore('2rem')  // overrides margin() for just the space before
+    ->spaceAfter(0);       // overrides margin() for just the space after
+
+Separator::make()->width(240);      // a short, 240px line instead of the full width
+Separator::make()->width(240)->fullWidth(); // back to spanning the full width
+
+Separator::make('OR')->alignStart(); // pushes the label toward the start instead of the center
+```
+
+`maxWidth()`, `columnSpan()`, `hidden()`/`visible()`, and `extraAttributes()` all come from the
+base schema `Component` for free — no extra API to learn.
+
+#### Extensibility
+
+- **Custom variants** — `variant('brand')` plus a `.fi-separator-variant-brand` rule in your own
+  CSS; no subclassing needed.
+- **Presets** — register a reusable configuration once:
+
+  ```php
+  Separator::configureUsing(fn (Separator $separator) => $separator->subtle()->margin('lg'));
+  ```
+
+- **A different renderer** — rebind `RendersSeparator` to change how every separator in the app
+  renders, down to skipping Blade entirely:
+
+  ```php
+  use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
+
+  $this->app->bind(RendersSeparator::class, MySeparatorRenderer::class);
+  ```
+
+- **Macros** — `Separator` is `Macroable`, like every Filament component.
+
 ## Testing
 
 ```bash
