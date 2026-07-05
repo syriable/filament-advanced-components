@@ -24,14 +24,26 @@
 }
 
 /* A dropdown row must span the full width of its option item, otherwise a
-   badge aligned to the end has no free space to move into. The `flex` handles
-   the case where the option item lays out its label as a flex child (which
-   would otherwise shrink to content); `width` handles the block case. The
-   compact selected value / multi-select chips are excluded so they stay sized
-   to their content. */
+   badge aligned to the end has no free space to move into. The compact
+   selected value / multi-select chips are excluded so they stay sized to
+   their content. */
 .fi-adv-select-option:not(.fi-adv-select-option-selected) {
     width: 100%;
-    flex: 1 1 auto;
+}
+
+/* Filament's native select renders each dropdown row as
+   `<li class="… fi-select-input-option">`, a flex container, but inserts our
+   HTML inside a bare, class-less `<span>` — the actual flex item. That span
+   has no `flex-grow`, so by default it shrinks to fit its content instead of
+   filling the row, leaving a badge aligned to the end with nowhere to go.
+   Target it structurally (Filament assigns it no class to hook into) so it
+   grows to fill the row and, in turn, lets `.fi-adv-select-option` above fill
+   it. This only reaches the dropdown's list rows — the compact selected
+   value / chips are built through a different code path and are unaffected. */
+.fi-select-input-option > span {
+    display: flex;
+    flex: 1;
+    min-width: 0;
 }
 
 .fi-adv-select-option-icon {

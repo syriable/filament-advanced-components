@@ -183,7 +183,7 @@ it('renders icon, label, description and badge markup per option', function () {
         ->and($html)->toContain('Visible to everyone')
         ->and($html)->toContain('fi-adv-select-option-badge')
         ->and($html)->toContain('Live')
-        ->and($html)->toContain('--fi-adv-select-option-color: var(--color-success-600)');
+        ->and($html)->toContain('--fi-adv-select-option-color: var(--success-600)');
 });
 
 it('escapes developer-supplied label and description text', function () {
@@ -232,7 +232,7 @@ it('augments plain options with parallel icon, description, color and badge maps
         ->and($options['draft'])->toContain('Only visible to you')
         ->and($options['draft'])->toContain('<svg')
         ->and($options['published'])->toContain('Live')
-        ->and($options['published'])->toContain('var(--color-success-600)');
+        ->and($options['published'])->toContain('var(--success-600)');
 });
 
 it('never applies parallel maps to explicitly authored options', function () {
@@ -265,7 +265,7 @@ it('evaluates every option value lazily with the record injection', function () 
     expect($html)->toContain('Ada')
         ->and($html)->toContain('Owner: Ada')
         ->and($html)->toContain('ADA')
-        ->and($html)->toContain('var(--color-success-600)');
+        ->and($html)->toContain('var(--success-600)');
 });
 
 it('keeps a plain closure options list fully native', function () {
@@ -580,7 +580,7 @@ it('renders an enum implementing the Filament contracts as rich options', functi
         ->and($options['high'])->toContain('High priority')
         ->and($options['high'])->toContain('Needs attention now')
         ->and($options['high'])->toContain('<svg')
-        ->and($options['high'])->toContain('var(--color-danger-600)')
+        ->and($options['high'])->toContain('var(--danger-600)')
         ->and($options['low'])->toContain('Low priority')
         ->and($options['low'])->toContain('Can wait');
 });
@@ -624,7 +624,7 @@ it('lets a parallel map override an enum-provided value', function () {
     // The description is overridden; the enum's icon and color remain.
     expect($high)->toContain('Escalated')
         ->and($high)->not->toContain('Needs attention now')
-        ->and($high)->toContain('var(--color-danger-600)');
+        ->and($high)->toContain('var(--danger-600)');
 });
 
 it('activates rich enum rendering when a parallel map is added to a label-only enum', function () {
@@ -648,7 +648,7 @@ it('renders a badge from an enum implementing the HasBadge contract', function (
         ->and($options['pro'])->toContain('fi-adv-select-option-badge')
         ->and($options['pro'])->toContain('Popular')
         // The badge inherits the case's HasColor color.
-        ->and($options['pro'])->toContain('var(--color-success-600)')
+        ->and($options['pro'])->toContain('var(--success-600)')
         // A null badge simply omits it.
         ->and($options['free'])->not->toContain('fi-adv-select-option-badge');
 });
@@ -709,6 +709,21 @@ it('carries badge alignment into the compact selected label', function () {
     ]))->buildSelectedLabel('pro');
 
     expect($label)->toContain('fi-adv-select-option-badge-end');
+});
+
+it('resolves a registered color to its bare Filament CSS variable, not a color-prefixed one', function () {
+    // Filament exposes every registered color's shades at :root as bare
+    // `--{name}-{shade}` custom properties (see FilamentAsset's asset view);
+    // `--color-{name}-{shade}` is not a real variable for named colors (only
+    // `gray` happens to have that alias), so resolving against it silently
+    // fell through to the renderer's hardcoded fallback color for every
+    // other color.
+    $html = mountSelect(AdvancedSelect::make('status')->options([
+        SelectOption::make('pro', 'Pro')->color('danger')->badge('New'),
+    ]))->getOptions()['pro'];
+
+    expect($html)->toContain('var(--danger-600)')
+        ->and($html)->not->toContain('var(--color-danger-600)');
 });
 
 // ---------------------------------------------------------------------------
@@ -881,4 +896,21 @@ it('still supports a native boolean() select', function () {
 
     expect($select->hasRichOptions())->toBeFalse()
         ->and($select->getOptions())->toHaveKeys([1, 0]);
+});
+
+// ---------------------------------------------------------------------------
+// Shipped CSS asset
+// ---------------------------------------------------------------------------
+
+it('targets the native dropdown item\'s bare span so end-aligned badges can reach the row\'s edge', function () {
+    // Filament's compiled select.js (createOptionElement()) inserts our
+    // rendered option HTML into a class-less <span>, appended as the sole
+    // child of the flex-container <li class="… fi-select-input-option">.
+    // That span is the actual flex item and, lacking flex-grow, shrinks to
+    // its content by default — this structural selector is what makes it
+    // fill the row so badgeAlign('end') has somewhere to push into.
+    // Verified against a reproduction of Filament's real rendered DOM.
+    $css = file_get_contents(__DIR__ . '/../resources/css/advanced-select.css');
+
+    expect($css)->toContain('.fi-select-input-option > span');
 });
