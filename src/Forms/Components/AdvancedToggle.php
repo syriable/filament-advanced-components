@@ -77,11 +77,21 @@ class AdvancedToggle extends Toggle
     use HasStateLabels;
     use HasStateTooltips;
 
-    protected string $view = 'filament-advanced-components::components.advanced-toggle';
-
     protected ?Action $confirmationAction = null;
 
     protected ?BuildsConfirmationAction $confirmationActionBuilder = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Set through the view() method, not a redeclared $view property:
+        // Toggle::$view carries a `view-string` PHPDoc, and PHPStan enforces
+        // property-override invariance across the hierarchy, so a plain
+        // `string` redeclaration here is rejected even though the value
+        // itself is a perfectly valid view name.
+        $this->view('filament-advanced-components::components.advanced-toggle');
+    }
 
     /**
      * @return array<Action>

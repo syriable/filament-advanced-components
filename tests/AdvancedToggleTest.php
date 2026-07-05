@@ -186,7 +186,11 @@ it('also exposes every appearance option as a dedicated fluent setter', function
 
 it('builds a native Filament action named "confirm" that always requires confirmation', function () {
     $toggle = makeToggle()->requiresConfirmation(title: 'Enable feature');
-    $action = $toggle->getConfirmationAction();
+
+    // getAction() (not getConfirmationAction() directly) goes through the
+    // schema-level cacheActions()/prepareAction() path, which is what binds
+    // schemaComponent() — exactly how a real mount resolves it.
+    $action = $toggle->getAction('confirm');
 
     expect($action->getName())->toBe('confirm')
         ->and($action->isConfirmationRequired())->toBeTrue()
@@ -357,9 +361,14 @@ it('fires onCancel() without ever touching the state', function () {
             $received = $oldState;
         });
 
+    // 'cancel' is a *nested* modal action of 'confirm', not a top-level
+    // schema-component action — it resolves via the already-mounted parent
+    // action's own getModalAction(), so its context must be empty (no
+    // schemaComponent), letting resolveAction() find it through
+    // $parentActions instead of resolveSchemaComponentAction().
     mountConfirmable($toggle, initialState: false)
         ->call('mountAction', 'confirm', ['state' => true], ['schemaComponent' => 'form.enabled'])
-        ->call('mountAction', 'cancel', [], ['schemaComponent' => 'form.enabled'])
+        ->call('mountAction', 'cancel', [], [])
         ->assertSet('data.enabled', false);
 
     expect($received)->toBeFalse();
