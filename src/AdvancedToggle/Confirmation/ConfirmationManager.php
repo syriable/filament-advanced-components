@@ -166,12 +166,18 @@ class ConfirmationManager implements BuildsConfirmationAction
                 return $action;
             }
 
+            // Captures $toggle directly rather than relying on Filament's
+            // `component`/`schemaComponent` parameter injection: unlike a
+            // schema component's own top-level action, a nested modal action
+            // (getModalCancelAction()'s result) is never passed through
+            // prepareModalAction(), so its own schemaComponent() is never
+            // bound — injection would resolve to null here.
             return $action
                 ->close(false)
-                ->action(function (AdvancedToggle $component) use ($onCancel): void {
-                    $oldState = (bool) $component->getState();
+                ->action(function () use ($toggle, $onCancel): void {
+                    $oldState = (bool) $toggle->getState();
 
-                    $component->evaluate($onCancel, [
+                    $toggle->evaluate($onCancel, [
                         'oldState' => $oldState,
                         'state' => $oldState,
                     ]);

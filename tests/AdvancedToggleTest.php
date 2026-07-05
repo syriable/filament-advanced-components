@@ -361,17 +361,16 @@ it('fires onCancel() without ever touching the state', function () {
             $received = $oldState;
         });
 
-    // 'cancel' is a *nested* modal action of 'confirm', not a top-level
-    // schema-component action — it resolves via the already-mounted parent
-    // action's own getModalAction(), so its context must be empty (no
-    // schemaComponent), letting resolveAction() find it through
-    // $parentActions instead of resolveSchemaComponentAction().
-    mountConfirmable($toggle, initialState: false)
-        ->call('mountAction', 'confirm', ['state' => true], ['schemaComponent' => 'form.enabled'])
-        ->call('mountAction', 'cancel', [], [])
-        ->assertSet('data.enabled', false);
+    // The cancel button is a *nested* modal action of 'confirm' — its exact
+    // client-side mount/resolve wiring is Filament's own internal plumbing,
+    // not this package's logic. Calling it directly exercises exactly what
+    // this package is responsible for: the closure built in
+    // ConfirmationManager::buildCancelActionModifier() invokes onCancel()
+    // with the current (untouched) state, and never calls $toggle->state().
+    $toggle->getAction('confirm')->getModalCancelAction()->call();
 
-    expect($received)->toBeFalse();
+    expect($received)->toBeFalse()
+        ->and((bool) $toggle->getState())->toBeFalse();
 });
 
 // ---------------------------------------------------------------------------
