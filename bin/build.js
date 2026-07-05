@@ -58,3 +58,11 @@ compile({
 }).then(() => {
     console.log(`Build completed for components/package-comparison.js`)
 })
+
+compile({
+    ...defaultOptions,
+    entryPoints: ['./resources/js/components/otp-input.js'],
+    outfile: './resources/dist/components/otp-input.js',
+}).then(() => {
+    console.log(`Build completed for components/otp-input.js`)
+})
