@@ -33,6 +33,7 @@ readonly class SeparatorViewModel
         public ?string $padding,
         public ?string $spaceBefore,
         public ?string $spaceAfter,
+        public ?string $color,
         public ComponentAttributeBag $extraAttributes,
     ) {}
 
@@ -61,6 +62,11 @@ readonly class SeparatorViewModel
         return $this->iconPosition === IconPosition::Before;
     }
 
+    public function isColored(): bool
+    {
+        return $this->color !== null && $this->color !== '';
+    }
+
     public function alignmentClass(): ?string
     {
         $alignment = $this->alignment instanceof Alignment ? $this->alignment->value : $this->alignment;
@@ -77,6 +83,7 @@ readonly class SeparatorViewModel
         return implode(';', array_filter([
             filled($this->width) ? "--fi-separator-width: {$this->width}" : null,
             filled($this->padding) ? "--fi-separator-content-gap: {$this->padding}" : null,
+            $this->isColored() ? "--fi-separator-color: {$this->color}" : null,
             '--fi-separator-space-before: ' . ($this->spaceBefore ?? '0px'),
             '--fi-separator-space-after: ' . ($this->spaceAfter ?? '0px'),
         ]));

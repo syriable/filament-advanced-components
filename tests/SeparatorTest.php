@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Filament\Schemas\Schema;
+use Filament\Support\Colors\Color;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Support\HtmlString;
 use Syriable\Filament\Plugins\AdvancedComponents\Schemas\Components\Separator;
@@ -152,6 +153,42 @@ it('renders extra attributes', function () {
     $html = renderSeparator(Separator::make()->extraAttributes(['data-testid' => 'my-separator']));
 
     expect($html)->toContain('data-testid="my-separator"');
+});
+
+it('accepts a color and exposes it through the inherited getColor()', function () {
+    expect(Separator::make()->color('info')->getColor())->toBe('info')
+        ->and(Separator::make()->color('#22d3ee')->getColor())->toBe('#22d3ee')
+        ->and(Separator::make()->color(Color::Blue)->getColor())->toBe(Color::Blue)
+        ->and(Separator::make()->color(fn (): string => 'success')->getColor())->toBe('success')
+        ->and(Separator::make()->getColor())->toBeNull();
+});
+
+it('resolves a registered color name to its theme CSS variable', function () {
+    $html = renderSeparator(Separator::make('Danger Zone')->color('danger'));
+
+    expect($html)->toContain('fi-separator-colored')
+        ->and($html)->toContain('--fi-separator-color: var(--danger-600)');
+});
+
+it('passes a raw CSS color through untouched', function () {
+    $html = renderSeparator(Separator::make()->color('#22d3ee'));
+
+    expect($html)->toContain('fi-separator-colored')
+        ->and($html)->toContain('--fi-separator-color: #22d3ee');
+});
+
+it('indexes a raw Color palette array for its shade', function () {
+    $html = renderSeparator(Separator::make()->color(Color::Blue));
+
+    expect($html)->toContain('fi-separator-colored')
+        ->and($html)->toContain('--fi-separator-color: ' . Color::Blue[600]);
+});
+
+it('stays neutral with no colored marker when no color is set', function () {
+    $html = renderSeparator(Separator::make('Plain'));
+
+    expect($html)->not->toContain('fi-separator-colored')
+        ->and($html)->not->toContain('--fi-separator-color');
 });
 
 it('is hidden via the inherited hidden()/visible() API', function () {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering;
 
 use Illuminate\Contracts\Support\Htmlable;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
 use Syriable\Filament\Plugins\AdvancedComponents\Schemas\Components\Separator;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
 
@@ -43,8 +44,23 @@ class SeparatorRenderer implements RendersSeparator
             padding: $separator->getPadding(),
             spaceBefore: $separator->getSpaceBefore(),
             spaceAfter: $separator->getSpaceAfter(),
+            color: $this->resolveColor($separator),
             extraAttributes: $separator->getExtraAttributeBag(),
         );
+    }
+
+    /**
+     * Resolves the configured color — a registered Filament name (`info`,
+     * `gray`, …), a raw `Color` palette array (`Color::Blue`), or a literal
+     * CSS color (`#22d3ee`) — into a single CSS value the stylesheet can
+     * tint the line, label, and icon with. Null when no color is set, so
+     * the separator keeps its neutral gray defaults.
+     */
+    protected function resolveColor(Separator $separator): ?string
+    {
+        $color = $separator->getColor();
+
+        return filled($color) ? ColorResolver::toCss($color) : null;
     }
 
     protected function resolveLabelHtml(Separator $separator): ?string
