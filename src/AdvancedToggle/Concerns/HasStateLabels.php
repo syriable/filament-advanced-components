@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns;
 
 use Closure;
+use Filament\Schemas\Components\Concerns\HasLabel;
 
 /**
  * A label shown next to the switch itself, one per state — distinct from the
- * field's own {@see \Filament\Schemas\Components\Concerns\HasLabel::label()},
+ * field's own {@see HasLabel::label()},
  * which never changes with the toggle's value.
  *
  * ```php

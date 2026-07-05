@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns;
 
 use Closure;
+use Filament\Actions\Action;
 use Filament\Schemas\Components\Component;
 
 /**
@@ -20,7 +21,7 @@ use Filament\Schemas\Components\Component;
  * ```
  *
  * The array (or closure) is handed to the underlying confirmation
- * {@see \Filament\Actions\Action::schema()} untouched, so it is evaluated by
+ * {@see Action::schema()} untouched, so it is evaluated by
  * Filament itself at modal-build time with the usual injections (`$get`,
  * `$set`, `$record`, ...) — component definitions never run early, and
  * validation is enforced automatically before the confirmation callback ever

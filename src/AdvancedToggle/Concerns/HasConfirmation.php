@@ -6,14 +6,17 @@ namespace Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns;
 
 use BackedEnum;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedToggle;
 use Throwable;
 
 /**
- * The core feature of {@see \Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedToggle}:
+ * The core feature of {@see AdvancedToggle}:
  * gates a state change behind a confirmation modal, so the field's value
  * never mutates until the user actively confirms.
  *
@@ -33,8 +36,8 @@ use Throwable;
  * Every appearance option doubles as a dedicated fluent setter
  * ({@see confirmationHeading()}, {@see confirmationDescription()}, ...) for
  * incremental configuration, and all of it accepts closures. Building the
- * actual {@see \Filament\Actions\Action} from this configuration is the job
- * of {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager}
+ * actual {@see Action} from this configuration is the job
+ * of {@see ConfirmationManager}
  * — this trait only stores *what* was configured.
  */
 trait HasConfirmation

@@ -9,13 +9,15 @@ use Filament\Actions\Action;
 use Filament\Support\Exceptions\Cancel;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Contracts\Support\Htmlable;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmation;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmationForm;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction;
 use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\AdvancedToggle;
 use Throwable;
 
 /**
  * Builds the {@see Action} that backs
- * {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmation::requiresConfirmation()},
+ * {@see HasConfirmation::requiresConfirmation()},
  * translating the field's confirmation configuration into native Filament
  * action-modal configuration — no bespoke modal markup exists anywhere in
  * this package.
@@ -33,7 +35,7 @@ use Throwable;
  *  - **Open modal / wait for interaction** — Filament's own
  *    `mountAction()`/action-modal rendering.
  *  - **Validation** — Filament's own schema validation, run automatically
- *    against {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmationForm::confirmationSchema()}
+ *    against {@see HasConfirmationForm::confirmationSchema()}
  *    before {@see buildConfirmationClosure()} is ever invoked.
  *  - **Commit** — {@see buildConfirmationClosure()}, below.
  */
@@ -67,9 +69,9 @@ class ConfirmationManager implements BuildsConfirmationAction
 
     /**
      * The main confirmation callback: runs the developer's
-     * {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmation::onConfirm()}
+     * {@see HasConfirmation::onConfirm()}
      * callback, commits the new state only if it doesn't throw, then fires
-     * {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmation::afterConfirmed()}.
+     * {@see HasConfirmation::afterConfirmed()}.
      *
      * Parameters are injected by Filament's own evaluator — `$component` by
      * name resolves to the schema component the action is registered on
@@ -147,7 +149,7 @@ class ConfirmationManager implements BuildsConfirmationAction
     /**
      * The cancel button's color applies unconditionally; a real server
      * round-trip is only wired up when the developer registered an
-     * {@see \Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Concerns\HasConfirmation::onCancel()}
+     * {@see HasConfirmation::onCancel()}
      * callback — otherwise it keeps Filament's native, instant client-side
      * `close()`, which never touches the server at all.
      */

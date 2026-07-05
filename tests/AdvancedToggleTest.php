@@ -8,6 +8,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction;
@@ -49,7 +50,7 @@ function renderToggle(AdvancedToggle $toggle): string
  * Mount a confirmable toggle inside a real Livewire component that can host
  * and mount its confirmation action, exactly like a Filament panel would.
  */
-function mountConfirmable(AdvancedToggle $toggle, bool $initialState = false): \Livewire\Features\SupportTesting\Testable
+function mountConfirmable(AdvancedToggle $toggle, bool $initialState = false): Testable
 {
     ActionsFormLivewireComponent::$components = [$toggle];
 
