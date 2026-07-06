@@ -5,8 +5,6 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/syriable/filament-advanced-components/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/syriable/filament-advanced-components/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/syriable/filament-advanced-components.svg?style=flat-square)](https://packagist.org/packages/syriable/filament-advanced-components)
 
-
-
 This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
 
 ## Installation
@@ -66,17 +64,17 @@ infolist entry, and a read-only form field, all with an identical configuration 
 
 **What it looks like:**
 
-- *Light mode, default:* a slim pill-shaped bar inside the table cell. Green (Translated),
+- _Light mode, default:_ a slim pill-shaped bar inside the table cell. Green (Translated),
   amber (Needs Review), and red (Missing) blocks sit flush against each other, with the overall
   percentage in small gray tabular figures on the right. Hovering a block raises a Filament
   tooltip reading "**Translated** / 420 keys / 70%".
-- *Dark mode:* the track becomes a translucent light-gray wash and each segment automatically
+- _Dark mode:_ the track becomes a translucent light-gray wash and each segment automatically
   switches to a shade with at least 3:1 (WCAG AA non-text) contrast against the dark surface.
-- *With legend:* below the bar, a wrapping row of colored dots with labels, percentages, and
+- _With legend:_ below the bar, a wrapping row of colored dots with labels, percentages, and
   optional count badges.
-- *Striped / gradient:* diagonal translucent stripes, or a subtle left-to-right lightening
+- _Striped / gradient:_ diagonal translucent stripes, or a subtle left-to-right lightening
   gradient per segment.
-- *Empty / loading:* an empty track with optional placeholder text, or a pulsing skeleton bar.
+- _Empty / loading:_ an empty track with optional placeholder text, or a pulsing skeleton bar.
 
 #### Quick start
 
@@ -179,16 +177,16 @@ user types.
 
 Each segment is an array (or a `Segment` object) with these keys:
 
-| Key | Type | Description |
-| --- | --- | --- |
-| `label` | `string` | Used in tooltips, the legend, and ARIA labels. |
-| `value` | `int\|float` | Raw amount or percentage; normalized against the total. |
-| `color` | `string\|array` | Semantic name, raw CSS color, or Filament palette (optional). |
-| `tooltip` | `string\|Htmlable` | Overrides the generated tooltip (optional). |
-| `icon` | `string\|BackedEnum` | Shown in the legend entry (optional). |
-| `badge` | `string` | Small badge next to the legend entry (optional). |
-| `url` | `string` | Makes the segment a clickable link (optional). |
-| `shouldOpenUrlInNewTab` | `bool` | Defaults to `false`. |
+| Key                     | Type                 | Description                                                   |
+| ----------------------- | -------------------- | ------------------------------------------------------------- |
+| `label`                 | `string`             | Used in tooltips, the legend, and ARIA labels.                |
+| `value`                 | `int\|float`         | Raw amount or percentage; normalized against the total.       |
+| `color`                 | `string\|array`      | Semantic name, raw CSS color, or Filament palette (optional). |
+| `tooltip`               | `string\|Htmlable`   | Overrides the generated tooltip (optional).                   |
+| `icon`                  | `string\|BackedEnum` | Shown in the legend entry (optional).                         |
+| `badge`                 | `string`             | Small badge next to the legend entry (optional).              |
+| `url`                   | `string`             | Makes the segment a clickable link (optional).                |
+| `shouldOpenUrlInNewTab` | `bool`               | Defaults to `false`.                                          |
 
 The fluent alternative:
 
@@ -223,7 +221,7 @@ Three formats are accepted per segment:
 
 - **Semantic names** — `success`, `warning`, `danger`, `info`, `primary`, `gray`, or any custom
   color registered with `FilamentColor`. These resolve through Filament's contrast-aware color
-  maps, picking a shade with WCAG AA non-text contrast (3:1) against the track in *both* light
+  maps, picking a shade with WCAG AA non-text contrast (3:1) against the track in _both_ light
   and dark mode.
 - **Full palettes** — e.g. `Color::Purple` or `Color::hex('#8b5cf6')` from
   `Filament\Support\Colors\Color`. Same contrast-aware resolution, inlined as CSS custom
@@ -295,7 +293,7 @@ custom theme.
 
 #### Live updates (event-driven, no polling)
 
-Because the bar is plain server-rendered Blade, it updates with *anything* that re-renders
+Because the bar is plain server-rendered Blade, it updates with _anything_ that re-renders
 the Livewire component — including a broadcast event. That means you can watch a long-running
 job (say, AI-powered automatic translation) creep forward in real time **without**
 `wire:poll` hammering your server every few seconds whether or not anything changed.
@@ -362,7 +360,7 @@ That's the whole loop: job progresses → one small WebSocket frame → Livewire
 the segments animate to their new widths.
 
 > [!TIP]
-> Can't run a WebSocket process where you deploy? The lightweight fallback is *conditional*
+> Can't run a WebSocket process where you deploy? The lightweight fallback is _conditional_
 > polling — poll only while a job is actually running, and go silent otherwise:
 >
 > ```php
@@ -376,7 +374,7 @@ advanced ergonomics: text masking, contact links, affix images and icons, extra 
 a character count, and a rendering decorator pipeline. Every native feature —
 `searchable()`, `sortable()`, `badge()`, `copyable()`, `limit()`, `dateTime()`, `money()`,
 descriptions, placeholders — keeps working untouched, because the native markup is rendered
-by the parent itself and only *wrapped* when an advanced feature needs it.
+by the parent itself and only _wrapped_ when an advanced feature needs it.
 
 Both components share one configuration API (the `HasAdvancedText` concern), so a
 configuration moves between a table and an infolist by swapping the class name.
@@ -460,7 +458,7 @@ Each helper accepts a condition: `->mailable(fn ($record) => $record->email_veri
 
 #### Affix images & icons
 
-Render an image or icon on either side of the content — including a prefix *and* a suffix
+Render an image or icon on either side of the content — including a prefix _and_ a suffix
 at the same time, which the native single `icon()` cannot do:
 
 ```php
@@ -514,7 +512,7 @@ working; an explicit `tooltip()` wins over `fullStateTooltip()`.
 
 #### Advanced badges
 
-Beyond the native `badge()` (which turns the *state itself* into badges), an unlimited
+Beyond the native `badge()` (which turns the _state itself_ into badges), an unlimited
 number of fully independent badges can be attached next to the content:
 
 ```php
@@ -710,12 +708,15 @@ Cast the attribute to `array` (or use a JSON column) and the field stores:
 
 ```json
 {
-    "packages": [
-        {"id": "9c2e…", "title": "Starter", "meta": {}}
-    ],
+    "packages": [{ "id": "9c2e…", "title": "Starter", "meta": {} }],
     "rows": [
-        {"id": "d7f3…", "label": "Responsive Design", "type": "boolean",
-         "config": {}, "values": {"9c2e…": true}}
+        {
+            "id": "d7f3…",
+            "label": "Responsive Design",
+            "type": "boolean",
+            "config": {},
+            "values": { "9c2e…": true }
+        }
     ]
 }
 ```
@@ -730,7 +731,7 @@ Filament fields.
   Livewire-entangled state; adding, removing, renaming, reordering (drag & drop via
   Filament's own sortable plugin) and cell edits fire **zero requests** until the form
   submits — or sync live if you chain `->live()`.
-- **The server never trusts the browser.** On hydration *and* dehydration the payload is
+- **The server never trusts the browser.** On hydration _and_ dehydration the payload is
   re-normalized: unknown row types are dropped, orphaned cell values pruned, per-type
   config whitelisted, every cell value coerced through its row type, and
   `minPackages()` / `maxPackages()` are enforced as validation rules.
@@ -740,15 +741,15 @@ Filament fields.
 
 #### Built-in row types
 
-| Type | Cell editor | Per-row settings |
-| --- | --- | --- |
-| `boolean` | Checkmark | — |
-| `text` / `textarea` / `description` | Text input / textarea | — |
-| `number` | Number input | — |
-| `price` | Number input with currency prefix | Currency |
-| `select` / `radio` | Dropdown / radio group | Options list |
-| `delivery` | Amount + unit (`{"amount": 7, "unit": "days"}`) | — |
-| `footer` | Per-package call-to-action line | — |
+| Type                                | Cell editor                                     | Per-row settings |
+| ----------------------------------- | ----------------------------------------------- | ---------------- |
+| `boolean`                           | Checkmark                                       | —                |
+| `text` / `textarea` / `description` | Text input / textarea                           | —                |
+| `number`                            | Number input                                    | —                |
+| `price`                             | Number input with currency prefix               | Currency         |
+| `select` / `radio`                  | Dropdown / radio group                          | Options list     |
+| `delivery`                          | Amount + unit (`{"amount": 7, "unit": "days"}`) | —                |
+| `footer`                            | Per-package call-to-action line                 | —                |
 
 #### Custom row types
 
@@ -805,12 +806,12 @@ evaluation on every value.
 
 **What it looks like:**
 
-- *Dropdown:* each row shows an icon on the left, the label with an optional smaller,
+- _Dropdown:_ each row shows an icon on the left, the label with an optional smaller,
   muted description underneath, and an optional badge pushed to the right edge. The label
   can be tinted with any Filament color.
-- *Selected value:* a compact version — icon, label, and badge, without the description — so
+- _Selected value:_ a compact version — icon, label, and badge, without the description — so
   the control never grows taller than a native one. Multi-select chips use the same compact form.
-- *Everything else is native:* search, `multiple()`, relationships, validation, create/edit
+- _Everything else is native:_ search, `multiple()`, relationships, validation, create/edit
   option actions, and Livewire reactivity all behave exactly as they do on `Select`, because
   `AdvancedSelect` **extends** it and only layers rendering on top.
 
@@ -850,19 +851,19 @@ Every `SelectOption` setter accepts a static value **or** a closure with the fie
 `$state`, `$get`, `$record`, `$livewire`, and `$component` injections (plus `$option`, the
 option itself), so nothing is evaluated until render time.
 
-| Method | Purpose |
-| --- | --- |
-| `make($value, $label = null)` | The value stored in state and its label (defaults to the value). |
-| `label()` / `translateLabel()` | Set / translate the label. |
-| `description()` | A muted secondary line under the label. |
-| `icon()` / `iconColor()` | A leading icon and its color. |
-| `color()` | Tints the label; inherited by the badge. |
-| `badge($label, $color = null)` / `badgeColor()` | A trailing badge. |
-| `badgeAlign('start' \| 'end')` | Badge position on the label line — next to the label (default) or the far end. |
-| `disabled()` | Render the option but block selection. |
-| `visible()` / `hidden()` | Conditionally include the option. |
-| `group()` | Place the option under an optgroup heading. |
-| `classes()` / `extraAttributes()` | Extra CSS classes / HTML attributes on the option element. |
+| Method                                          | Purpose                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| `make($value, $label = null)`                   | The value stored in state and its label (defaults to the value).               |
+| `label()` / `translateLabel()`                  | Set / translate the label.                                                     |
+| `description()`                                 | A muted secondary line under the label.                                        |
+| `icon()` / `iconColor()`                        | A leading icon and its color.                                                  |
+| `color()`                                       | Tints the label; inherited by the badge.                                       |
+| `badge($label, $color = null)` / `badgeColor()` | A trailing badge.                                                              |
+| `badgeAlign('start' \| 'end')`                  | Badge position on the label line — next to the label (default) or the far end. |
+| `disabled()`                                    | Render the option but block selection.                                         |
+| `visible()` / `hidden()`                        | Conditionally include the option.                                              |
+| `group()`                                       | Place the option under an optgroup heading.                                    |
+| `classes()` / `extraAttributes()`               | Extra CSS classes / HTML attributes on the option element.                     |
 
 Colors accept a semantic Filament name (`success`, `danger`, …), a `Color` palette array (e.g.
 `Color::Blue` or `Color::hex('#8b5cf6')` from `Filament\Support\Colors\Color`), or any literal CSS
@@ -1025,24 +1026,24 @@ and every stage is replaceable without touching the component.
 
 - **Decorators** — wrap the rendered HTML for a one-off tweak:
 
-  ```php
-  AdvancedSelect::make('status')
-      ->options([...])
-      ->decorateOptionUsing(fn (string $html): string => "<div class=\"px-1\">{$html}</div>")
-      ->decorateSelectedLabelUsing(fn (string $html): string => "<span class=\"font-medium\">{$html}</span>");
-  ```
+    ```php
+    AdvancedSelect::make('status')
+        ->options([...])
+        ->decorateOptionUsing(fn (string $html): string => "<div class=\"px-1\">{$html}</div>")
+        ->decorateSelectedLabelUsing(fn (string $html): string => "<span class=\"font-medium\">{$html}</span>");
+    ```
 
 - **Custom renderer** — swap the markup wholesale by implementing `RendersOptions`. Bind it
   globally in a service provider…
 
-  ```php
-  use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
+    ```php
+    use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Contracts\RendersOptions;
 
-  $this->app->bind(RendersOptions::class, MyOptionRenderer::class);
-  ```
+    $this->app->bind(RendersOptions::class, MyOptionRenderer::class);
+    ```
 
-  …or per-field with `->renderOptionsUsing(new MyOptionRenderer())`. Subclass the default
-  `OptionRenderer` to override just `renderOption()` or `renderSelectedLabel()`.
+    …or per-field with `->renderOptionsUsing(new MyOptionRenderer())`. Subclass the default
+    `OptionRenderer` to override just `renderOption()` or `renderSelectedLabel()`.
 
 - **Macros** — both `SelectOption` and `AdvancedSelect` are `Macroable`.
 
@@ -1082,12 +1083,12 @@ icon, and nothing else: no field name, no state, no validation, no dehydrated va
 
 **What it looks like:**
 
-- *Plain divider:* `Separator::make()` — a single full-width line, exactly like an HTML `<hr>`.
-- *Labeled:* `Separator::make('General Information')` — the line splits around a small, muted,
+- _Plain divider:_ `Separator::make()` — a single full-width line, exactly like an HTML `<hr>`.
+- _Labeled:_ `Separator::make('General Information')` — the line splits around a small, muted,
   centered label.
-- *Decorative:* `Separator::make()->text('OR')` — `text()` is an alias for `label()`, reading
+- _Decorative:_ `Separator::make()->text('OR')` — `text()` is an alias for `label()`, reading
   naturally for a divider that isn't introducing a new section.
-- *Dark mode:* the line color is read from the panel's gray scale, so custom themes restyle it
+- _Dark mode:_ the line color is read from the panel's gray scale, so custom themes restyle it
   automatically.
 
 Because it extends the same base `Filament\Schemas\Components\Component` that `Section`, `Grid`,
@@ -1200,13 +1201,13 @@ Separator::make()->zigzag()
 
 These resolve to CSS custom properties on the separator root:
 
-| Call | Border variants | Zigzag variant |
-|---|---|---|
-| `thick()` | `--fi-separator-thickness: 3px` | `--fi-separator-zigzag-s: 100px`, `-b: 35px` |
-| `thick(5)` | `--fi-separator-thickness: 5px` | same as `thick()` unless a second arg is passed |
-| `thick(60, 20)` | ignored | `--fi-separator-zigzag-s: 60px`, `-b: 20px` |
-| `thin()` | `--fi-separator-thickness: 1px` | `--fi-separator-zigzag-s: 4px`, `-b: 1px` |
-| `zigzagAngle(90)` | — | `--fi-separator-zigzag-a: 90deg` |
+| Call              | Border variants                 | Zigzag variant                                  |
+| ----------------- | ------------------------------- | ----------------------------------------------- |
+| `thick()`         | `--fi-separator-thickness: 3px` | `--fi-separator-zigzag-s: 100px`, `-b: 35px`    |
+| `thick(5)`        | `--fi-separator-thickness: 5px` | same as `thick()` unless a second arg is passed |
+| `thick(60, 20)`   | ignored                         | `--fi-separator-zigzag-s: 60px`, `-b: 20px`     |
+| `thin()`          | `--fi-separator-thickness: 1px` | `--fi-separator-zigzag-s: 4px`, `-b: 1px`       |
+| `zigzagAngle(90)` | —                               | `--fi-separator-zigzag-a: 90deg`                |
 
 Without `thick()` / `thin()` / the granular setters, zigzag falls back to the package stylesheet
 defaults. Override any variable in your own CSS or via `extraAttributes(['style' => '...'])` if
@@ -1256,18 +1257,18 @@ base schema `Component` for free — no extra API to learn.
   CSS; no subclassing needed.
 - **Presets** — register a reusable configuration once:
 
-  ```php
-  Separator::configureUsing(fn (Separator $separator) => $separator->subtle()->margin('lg'));
-  ```
+    ```php
+    Separator::configureUsing(fn (Separator $separator) => $separator->subtle()->margin('lg'));
+    ```
 
 - **A different renderer** — rebind `RendersSeparator` to change how every separator in the app
   renders, down to skipping Blade entirely:
 
-  ```php
-  use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
+    ```php
+    use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
 
-  $this->app->bind(RendersSeparator::class, MySeparatorRenderer::class);
-  ```
+    $this->app->bind(RendersSeparator::class, MySeparatorRenderer::class);
+    ```
 
 - **Macros** — `Separator` is `Macroable`, like every Filament component.
 
@@ -1365,6 +1366,7 @@ method name additionally calls that Livewire method directly.
 OtpInput::make('code')->large();      // or ->compact(), ->small()
 OtpInput::make('code')->square();     // or ->rounded() (default)
 OtpInput::make('code')->cellWidth(48)->cellGap('0.75rem');
+OtpInput::make('code')->alignment('center'); // or ->alignStart(), ->alignEnd()
 ```
 
 Everything from the base field — `label()`, `hiddenLabel()`, `helperText()`, `hint()`,
@@ -1394,7 +1396,7 @@ false ──click──▶ [ modal: "Enable Feature?" ] ──confirm──▶ t
 
 **The guarantee:** without `requiresConfirmation()`, an `AdvancedToggle` renders and behaves
 byte-for-byte like a native `Toggle`. The moment it's used, the switch **cannot** flip, revert,
-or flicker on its own — the click is intercepted client-side *before* it ever reaches the
+or flicker on its own — the click is intercepted client-side _before_ it ever reaches the
 entangled Livewire property, and the value only ever changes as the result of a real,
 server-side confirmed action call. There is no "set then undo": the previous state is simply
 never touched unless confirmation succeeds.
@@ -1505,7 +1507,7 @@ AdvancedToggle::make('enabled')->requiresConfirmation(onlyWhenTurningOff: true);
 ```
 
 The condition closure also receives `$newState` and `$oldState`, for logic that depends on the
-direction *and* something else (the current user, a related model, ...).
+direction _and_ something else (the current user, a related model, ...).
 
 #### Asynchronous confirmation & failure handling
 
