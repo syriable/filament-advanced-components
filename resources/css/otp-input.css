@@ -20,6 +20,40 @@
     flex-wrap: wrap;
 }
 
+.fi-otp-input:is(
+    .fi-otp-input-align-start,
+    .fi-otp-input-align-center,
+    .fi-otp-input-align-end,
+    .fi-otp-input-align-justify,
+    .fi-otp-input-align-between,
+    .fi-otp-input-align-left,
+    .fi-otp-input-align-right
+) {
+    width: 100%;
+}
+
+.fi-otp-input-align-start,
+.fi-otp-input-align-left {
+    justify-content: flex-start;
+}
+
+.fi-otp-input-align-center {
+    justify-content: center;
+}
+
+.fi-otp-input-align-end,
+.fi-otp-input-align-right {
+    justify-content: flex-end;
+}
+
+.fi-otp-input-align-justify {
+    justify-content: space-evenly;
+}
+
+.fi-otp-input-align-between {
+    justify-content: space-between;
+}
+
 .fi-otp-input-group {
     display: flex;
     align-items: center;

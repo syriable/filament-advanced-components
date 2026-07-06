@@ -297,6 +297,16 @@ it('renders size, shape, and private classes', function () {
         ->and($html)->toContain('fi-otp-input-private');
 });
 
+it('supports alignment within the field container', function () {
+    expect(makeOtp()->alignment('center')->getAlignmentClass())->toBe('fi-otp-input-align-center')
+        ->and(makeOtp()->alignEnd()->getAlignmentClass())->toBe('fi-otp-input-align-end')
+        ->and(makeOtp()->getAlignmentClass())->toBeNull();
+
+    $html = renderOtp(makeOtp('otp')->length(4)->alignment('center'));
+
+    expect($html)->toContain('fi-otp-input-align-center');
+});
+
 it('renders per-cell accessible labels', function () {
     $html = renderOtp(makeOtp('otp')->length(3));
 

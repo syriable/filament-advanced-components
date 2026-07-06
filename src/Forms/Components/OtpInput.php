@@ -8,7 +8,9 @@ use Closure;
 use Filament\Forms\Components\Concerns\CanBeReadOnly;
 use Filament\Forms\Components\Concerns\HasPlaceholder;
 use Filament\Forms\Components\Field;
+use Filament\Support\Concerns\HasAlignment;
 use Filament\Support\Concerns\HasExtraAlpineAttributes;
+use Filament\Support\Enums\Alignment;
 use Syriable\Filament\Plugins\AdvancedComponents\Otp\Concerns\HasAutocomplete;
 use Syriable\Filament\Plugins\AdvancedComponents\Otp\Concerns\HasAutoSubmit;
 use Syriable\Filament\Plugins\AdvancedComponents\Otp\Concerns\HasGrouping;
@@ -34,6 +36,10 @@ use Syriable\Filament\Plugins\AdvancedComponents\Otp\Rendering\OtpViewModel;
  *     ->autoSubmit()     // fire otp-completed when full
  *     ->group(3)         // 123 - 456
  *     ->separator('-');
+ *
+ * OtpInput::make('code')
+ *     ->length(6)
+ *     ->alignment('center');
  * ```
  *
  * ## A single scalar value
@@ -66,6 +72,7 @@ use Syriable\Filament\Plugins\AdvancedComponents\Otp\Rendering\OtpViewModel;
 class OtpInput extends Field
 {
     use CanBeReadOnly;
+    use HasAlignment;
     use HasAutocomplete;
     use HasAutoSubmit;
     use HasExtraAlpineAttributes;
@@ -133,7 +140,7 @@ class OtpInput extends Field
 
         // Exact length + character policy, enforced server-side and skipped
         // for an empty optional value (the `required` rule owns emptiness).
-        $this->rule(static fn(OtpInput $component): Closure => static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
+        $this->rule(static fn (OtpInput $component): Closure => static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
             if (blank($value)) {
                 return;
             }
@@ -220,5 +227,18 @@ class OtpInput extends Field
         }
 
         return $placeholders;
+    }
+
+    public function getAlignmentClass(): ?string
+    {
+        $alignment = $this->getAlignment();
+
+        if (blank($alignment)) {
+            return null;
+        }
+
+        $value = $alignment instanceof Alignment ? $alignment->value : $alignment;
+
+        return "fi-otp-input-align-{$value}";
     }
 }

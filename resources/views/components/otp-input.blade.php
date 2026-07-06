@@ -11,6 +11,7 @@
     use Filament\Support\Facades\FilamentAsset;
 
     $vm = $getViewModel();
+    $alignmentClass = $getAlignmentClass();
     $statePath = $getStatePath();
     $fieldWrapperView = $getFieldWrapperView();
 
@@ -60,6 +61,7 @@
                     'fi-otp-input',
                     'fi-otp-input-size-' . $vm->size->value,
                     'fi-otp-input-shape-' . $vm->shape->value,
+                    $alignmentClass,
                     'fi-otp-input-private' => $vm->isPrivate,
                     'fi-otp-input-disabled' => $vm->isDisabled,
                     'fi-otp-input-has-error' => $hasError,
