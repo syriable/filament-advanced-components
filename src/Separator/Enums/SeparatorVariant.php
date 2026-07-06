@@ -35,4 +35,6 @@ enum SeparatorVariant: string
     case Dashed = 'dashed';
 
     case Dotted = 'dotted';
+
+    case Zigzag = 'zigzag';
 }

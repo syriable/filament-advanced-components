@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\FontFamily;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
+use Filament\Support\Enums\TextSize;
 use Illuminate\Support\HtmlString;
 use Syriable\Filament\Plugins\AdvancedComponents\Schemas\Components\Separator;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
@@ -72,6 +75,7 @@ it('supports every built-in variant shorthand', function () {
         ->and(Separator::make()->solid()->getVariant())->toBe(SeparatorVariant::Solid)
         ->and(Separator::make()->dashed()->getVariant())->toBe(SeparatorVariant::Dashed)
         ->and(Separator::make()->dotted()->getVariant())->toBe(SeparatorVariant::Dotted)
+        ->and(Separator::make()->zigzag()->getVariant())->toBe(SeparatorVariant::Zigzag)
         ->and(Separator::make()->dashed()->default()->getVariant())->toBe(SeparatorVariant::Default);
 });
 
@@ -147,6 +151,70 @@ it('renders the configured variant and orientation classes', function () {
     expect($html)->toContain('fi-separator-variant-dashed')
         ->and($html)->toContain('fi-separator-vertical')
         ->and($html)->toContain('aria-orientation="vertical"');
+});
+
+it('renders the zigzag variant class', function () {
+    $html = renderSeparator(Separator::make()->zigzag());
+
+    expect($html)->toContain('fi-separator-variant-zigzag');
+});
+
+it('supports zigzag sizing through thick(), thin(), and granular setters', function () {
+    expect(Separator::make()->zigzag()->thick()->getZigzagSize())->toBe('100px')
+        ->and(Separator::make()->zigzag()->thick()->getZigzagDepth())->toBe('35px')
+        ->and(Separator::make()->zigzag()->thick(60, 20)->getZigzagSize())->toBe('60px')
+        ->and(Separator::make()->zigzag()->thick(60, 20)->getZigzagDepth())->toBe('20px')
+        ->and(Separator::make()->zigzag()->thin()->getZigzagSize())->toBe('4px')
+        ->and(Separator::make()->zigzag()->thin()->getZigzagDepth())->toBe('1px')
+        ->and(Separator::make()->zigzag()->zigzagSize('2rem')->zigzagDepth('0.5rem')->getZigzagCssVariables())->toBe([
+            '--fi-separator-zigzag-s' => '2rem',
+            '--fi-separator-zigzag-b' => '0.5rem',
+        ])
+        ->and(Separator::make()->zigzag()->zigzagAngle(90)->getZigzagAngle())->toBe('90deg');
+
+    $html = renderSeparator(Separator::make()->zigzag()->thick());
+
+    expect($html)->toContain('--fi-separator-zigzag-s: 100px')
+        ->and($html)->toContain('--fi-separator-zigzag-b: 35px');
+});
+
+it('supports thick() and thin() on border-based divider variants', function () {
+    expect(Separator::make()->dashed()->thick()->getThickness())->toBe('3px')
+        ->and(Separator::make()->solid()->thick(5)->getThickness())->toBe('5px')
+        ->and(Separator::make()->dotted()->thin()->getThickness())->toBe('1px')
+        ->and(Separator::make()->thickness('2px')->getThickness())->toBe('2px');
+
+    $html = renderSeparator(Separator::make()->dashed()->thick());
+
+    expect($html)->toContain('--fi-separator-thickness: 3px')
+        ->and($html)->not->toContain('--fi-separator-zigzag-s');
+});
+
+it('supports label typography through size, weight, and fontFamily', function () {
+    $separator = Separator::make('Section')
+        ->size(TextSize::Large)
+        ->weight(FontWeight::Bold)
+        ->fontFamily(FontFamily::Mono);
+
+    expect($separator->getSize())->toBe(TextSize::Large)
+        ->and($separator->getWeight())->toBe(FontWeight::Bold)
+        ->and($separator->getFontFamily())->toBe(FontFamily::Mono)
+        ->and($separator->getLabelTypographyClasses())->toBe([
+            'fi-size-lg',
+            'fi-font-bold',
+            'fi-font-mono',
+        ]);
+
+    $html = renderSeparator($separator);
+
+    expect($html)->toContain('fi-size-lg')
+        ->and($html)->toContain('fi-font-bold')
+        ->and($html)->toContain('fi-font-mono');
+});
+
+it('accepts a string size shorthand', function () {
+    expect(Separator::make()->size('xs')->getSize())->toBe(TextSize::ExtraSmall)
+        ->and(Separator::make()->getLabelTypographyClasses())->toBe([]);
 });
 
 it('renders extra attributes', function () {

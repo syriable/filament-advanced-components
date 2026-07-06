@@ -34,6 +34,11 @@ readonly class SeparatorViewModel
         public ?string $spaceBefore,
         public ?string $spaceAfter,
         public ?string $color,
+        public ?string $thickness,
+        /** @var list<string> */
+        public array $labelTypographyClasses,
+        /** @var array<string, string> */
+        public array $zigzagCssVariables,
         public ComponentAttributeBag $extraAttributes,
     ) {}
 
@@ -80,12 +85,19 @@ readonly class SeparatorViewModel
      */
     public function rootStyles(): string
     {
-        return implode(';', array_filter([
+        $styles = array_filter([
             filled($this->width) ? "--fi-separator-width: {$this->width}" : null,
             filled($this->padding) ? "--fi-separator-content-gap: {$this->padding}" : null,
+            filled($this->thickness) ? "--fi-separator-thickness: {$this->thickness}" : null,
             $this->isColored() ? "--fi-separator-color: {$this->color}" : null,
             '--fi-separator-space-before: ' . ($this->spaceBefore ?? '0px'),
             '--fi-separator-space-after: ' . ($this->spaceAfter ?? '0px'),
-        ]));
+        ]);
+
+        foreach ($this->zigzagCssVariables as $property => $value) {
+            $styles[] = "{$property}: {$value}";
+        }
+
+        return implode(';', $styles);
     }
 }

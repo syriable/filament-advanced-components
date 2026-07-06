@@ -68,6 +68,11 @@ trait HasVariant
         return $this->variant(fn (): ?SeparatorVariant => $this->evaluate($condition) ? SeparatorVariant::Dotted : null);
     }
 
+    public function zigzag(bool | Closure $condition = true): static
+    {
+        return $this->variant(fn (): ?SeparatorVariant => $this->evaluate($condition) ? SeparatorVariant::Zigzag : null);
+    }
+
     public function getVariant(): SeparatorVariant | string
     {
         $variant = $this->evaluate($this->variant);

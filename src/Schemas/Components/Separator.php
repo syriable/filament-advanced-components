@@ -20,10 +20,13 @@ use Filament\Support\Concerns\HasIconPosition;
 use Filament\Support\Concerns\Macroable;
 use Illuminate\Contracts\Support\Htmlable;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedSelect\Support\ColorResolver;
+use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasLabelTypography;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasOrientation;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasSpacing;
+use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasThickness;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasVariant;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasWidth;
+use Syriable\Filament\Plugins\AdvancedComponents\Separator\Concerns\HasZigzagSizing;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorViewModel;
@@ -49,6 +52,13 @@ use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorVi
  *
  * Separator::make('Danger Zone')
  *     ->color('danger'); // a registered name, Color::Blue, or a raw '#22d3ee'
+ *
+ * Separator::make('Section')
+ *     ->size(TextSize::Large)
+ *     ->weight(FontWeight::Bold)
+ *     ->fontFamily(FontFamily::Mono)
+ *     ->zigzag()
+ *     ->thick();
  * ```
  *
  * ## What it is not
@@ -84,6 +94,8 @@ use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorVi
  *  - {@see HasOrientation} — horizontal vs. vertical;
  *  - {@see HasVariant} — line pattern and tone, extensible with custom names;
  *  - {@see HasSpacing}, {@see HasWidth} — sizing;
+ *  - {@see HasThickness}, {@see HasZigzagSizing} — line weight and zigzag geometry;
+ *  - {@see HasLabelTypography} — label `size()`, `weight()`, `fontFamily()`;
  *  - `HasLabel`, `HasIcon`, `HasIconPosition`, `HasAlignment`, `HasColor` —
  *    Filament's own concerns, reused as-is; the resolved color is turned into
  *    a CSS value by {@see ColorResolver};
@@ -101,10 +113,13 @@ class Separator extends Component implements HasEmbeddedView
     use HasIcon;
     use HasIconPosition;
     use HasLabel;
+    use HasLabelTypography;
     use HasOrientation;
     use HasSpacing;
+    use HasThickness;
     use HasVariant;
     use HasWidth;
+    use HasZigzagSizing;
 
     final public function __construct(string | Htmlable | Closure | null $label = null)
     {

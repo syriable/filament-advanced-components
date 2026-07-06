@@ -45,6 +45,9 @@ class SeparatorRenderer implements RendersSeparator
             spaceBefore: $separator->getSpaceBefore(),
             spaceAfter: $separator->getSpaceAfter(),
             color: $this->resolveColor($separator),
+            thickness: $separator->getThickness(),
+            labelTypographyClasses: $separator->getLabelTypographyClasses(),
+            zigzagCssVariables: $separator->getZigzagCssVariables(),
             extraAttributes: $separator->getExtraAttributeBag(),
         );
     }

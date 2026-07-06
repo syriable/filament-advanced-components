@@ -29,7 +29,7 @@
             @endif
 
             @if ($separator->hasLabel())
-                <span class="fi-separator-label">{!! $separator->labelHtml !!}</span>
+                <span @class(array_merge(['fi-separator-label'], $separator->labelTypographyClasses))>{!! $separator->labelHtml !!}</span>
             @endif
 
             @if ($separator->hasIcon() && ! $separator->isIconBeforeLabel())

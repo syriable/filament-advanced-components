@@ -15,6 +15,7 @@
  *  - `--fi-separator-space-before` space before the separator
  *  - `--fi-separator-space-after`  space after the separator
  *  - `--fi-separator-content-gap`  gap between the line and the label/icon
+ *  - `--fi-separator-thickness`    border line weight (solid, dashed, dotted, …)
  */
 
 .fi-separator {
@@ -54,11 +55,11 @@
 }
 
 .fi-separator-horizontal .fi-separator-line {
-    border-top-width: 1px;
+    border-top-width: var(--fi-separator-thickness, 1px);
 }
 
 .fi-separator-vertical .fi-separator-line {
-    border-left-width: 1px;
+    border-left-width: var(--fi-separator-thickness, 1px);
 }
 
 /* Line pattern variants. */
@@ -73,6 +74,88 @@
 
 .fi-separator-variant-dotted .fi-separator-line {
     border-style: dotted;
+}
+
+/*
+ * Zigzag: conic-gradient mask (repeat-x / repeat-y). The pattern needs a
+ * few pixels to render reliably — defaults target a ~3px divider that reads
+ * like a 1px rule with visible teeth. Tune on the root separator:
+ *  - --fi-separator-zigzag-a  tooth angle (default 90deg)
+ *  - --fi-separator-zigzag-s  tooth period (default 4px)
+ *  - --fi-separator-zigzag-b  tooth depth (default 1px)
+ */
+.fi-separator-variant-zigzag {
+    --fi-separator-zigzag-a: 90deg;
+    --fi-separator-zigzag-s: 0.5rem;
+    --fi-separator-zigzag-b: 0.094rem;
+}
+
+.fi-separator-horizontal.fi-separator-variant-zigzag .fi-separator-line {
+    border: none;
+    flex-shrink: 0;
+    align-self: center;
+    width: 100%;
+    background: var(--gray-300);
+    height: 3px;
+    height: calc(
+        var(--fi-separator-zigzag-b) + var(--fi-separator-zigzag-s) /
+            (2 * tan(var(--fi-separator-zigzag-a) / 2))
+    );
+    --_g: var(--fi-separator-zigzag-s) repeat-x
+        conic-gradient(
+            from calc(var(--fi-separator-zigzag-a) / -2) at bottom,
+            #0000,
+            #000 1deg calc(var(--fi-separator-zigzag-a) - 1deg),
+            #0000 var(--fi-separator-zigzag-a)
+        );
+    -webkit-mask:
+        50% calc(-1 * var(--fi-separator-zigzag-b)) / var(--_g) exclude,
+        50% / var(--_g);
+    mask:
+        50% calc(-1 * var(--fi-separator-zigzag-b)) / var(--_g) exclude,
+        50% / var(--_g);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.dark .fi-separator-horizontal.fi-separator-variant-zigzag .fi-separator-line {
+    background: var(--gray-600);
+}
+
+.fi-separator-vertical.fi-separator-variant-zigzag .fi-separator-line {
+    border: none;
+    flex-shrink: 0;
+    align-self: center;
+    height: 100%;
+    background: var(--gray-300);
+    width: 3px;
+    width: calc(
+        var(--fi-separator-zigzag-b) + var(--fi-separator-zigzag-s) /
+            (2 * tan(var(--fi-separator-zigzag-a) / 2))
+    );
+    --_g: var(--fi-separator-zigzag-s) repeat-y
+        conic-gradient(
+            from calc(var(--fi-separator-zigzag-a) / -2) at right,
+            #0000,
+            #000 1deg calc(var(--fi-separator-zigzag-a) - 1deg),
+            #0000 var(--fi-separator-zigzag-a)
+        );
+    -webkit-mask:
+        calc(-1 * var(--fi-separator-zigzag-b)) 50% / var(--_g) exclude,
+        50% / var(--_g);
+    mask:
+        calc(-1 * var(--fi-separator-zigzag-b)) 50% / var(--_g) exclude,
+        50% / var(--_g);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.dark .fi-separator-vertical.fi-separator-variant-zigzag .fi-separator-line {
+    background: var(--gray-600);
+}
+
+.fi-separator-colored.fi-separator-variant-zigzag .fi-separator-line {
+    background: var(--fi-separator-color);
 }
 
 /* Tone variants. */
@@ -115,6 +198,77 @@
     white-space: nowrap;
 }
 
+/* Label typography — mirrors Filament schema Text sizing. */
+.fi-separator-label.fi-font-sans {
+    font-family: var(--font-family, ui-sans-serif, system-ui, sans-serif);
+}
+
+.fi-separator-label.fi-font-serif {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+}
+
+.fi-separator-label.fi-font-mono {
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+}
+
+.fi-separator-label.fi-font-thin {
+    font-weight: 100;
+}
+
+.fi-separator-label.fi-font-extralight {
+    font-weight: 200;
+}
+
+.fi-separator-label.fi-font-light {
+    font-weight: 300;
+}
+
+.fi-separator-label.fi-font-normal {
+    font-weight: 400;
+}
+
+.fi-separator-label.fi-font-medium {
+    font-weight: 500;
+}
+
+.fi-separator-label.fi-font-semibold {
+    font-weight: 600;
+}
+
+.fi-separator-label.fi-font-bold {
+    font-weight: 700;
+}
+
+.fi-separator-label.fi-font-extrabold {
+    font-weight: 800;
+}
+
+.fi-separator-label.fi-font-black {
+    font-weight: 900;
+}
+
+.fi-separator-label.fi-size-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.fi-separator-label.fi-size-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.fi-separator-label.fi-size-md {
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.fi-separator-label.fi-size-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
 .dark .fi-separator-label {
     color: var(--gray-400);
 }
@@ -152,7 +306,11 @@
  * without needing a separate dark-mode value.
  */
 .fi-separator-colored .fi-separator-line {
-    border-color: color-mix(in oklab, var(--fi-separator-color) 60%, transparent);
+    border-color: color-mix(
+        in oklab,
+        var(--fi-separator-color) 60%,
+        transparent
+    );
 }
 
 .fi-separator-colored .fi-separator-label {
