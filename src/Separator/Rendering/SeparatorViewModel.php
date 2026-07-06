@@ -62,6 +62,7 @@ readonly class SeparatorViewModel
         if ($this->hasLabel()) {
             return true;
         }
+
         return $this->hasIcon();
     }
 
