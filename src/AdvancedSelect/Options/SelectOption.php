@@ -114,9 +114,7 @@ class SelectOption
     /**
      * @param  string | int | BackedEnum  $value  The value persisted in state.
      */
-    final public function __construct(protected string | int | BackedEnum $value, protected string | Htmlable | Closure | null $label = null)
-    {
-    }
+    final public function __construct(protected string | int | BackedEnum $value, protected string | Htmlable | Closure | null $label = null) {}
 
     public static function make(string | int | BackedEnum $value, string | Htmlable | Closure | null $label = null): static
     {

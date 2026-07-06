@@ -133,7 +133,7 @@ class OtpInput extends Field
 
         // Exact length + character policy, enforced server-side and skipped
         // for an empty optional value (the `required` rule owns emptiness).
-        $this->rule(static fn(OtpInput $component): Closure => static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
+        $this->rule(static fn (OtpInput $component): Closure => static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
             if (blank($value)) {
                 return;
             }
