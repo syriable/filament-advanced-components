@@ -70,8 +70,9 @@ infolist entry, and a read-only form field, all with an identical configuration 
   tooltip reading "**Translated** / 420 keys / 70%".
 - _Dark mode:_ the track becomes a translucent light-gray wash and each segment automatically
   switches to a shade with at least 3:1 (WCAG AA non-text) contrast against the dark surface.
-- _With legend:_ below the bar, a wrapping row of colored dots with labels, percentages, and
-  optional count badges.
+- _With legend:_ below the bar, a row of colored dots with labels, percentages, and
+  optional count badges. Use `showLegendFrom('md')` to hide it on small screens and keep
+  table rows compact.
 - _Striped / gradient:_ diagonal translucent stripes, or a subtle left-to-right lightening
   gradient per segment.
 - _Empty / loading:_ an empty track with optional placeholder text, or a pulsing skeleton bar.
@@ -265,6 +266,43 @@ A per-segment `tooltip` key always wins over the generated one.
 ->compact()               // thinner bar, tighter typography, no legend
 ->minSegmentWidth(2)      // tiny segments stay ≥ 2% wide; larger ones shrink to fit
 ```
+
+#### Labels, legend & responsive visibility
+
+Show the overall percentage, total count, and/or a per-segment legend next to or below the
+bar:
+
+```php
+->showPercentage()   // "70%" to the right of the bar
+->showTotal()        // "· 600 keys" after the percentage (pair with valueSuffix())
+->showLegend()       // colored dots + labels below the bar
+```
+
+On table columns, hide these on small screens so the cell stays a single slim bar — the same
+breakpoint API Filament uses for `visibleFrom()` / `hiddenFrom()` on columns (`sm`, `md`, `lg`,
+`xl`, `2xl`):
+
+```php
+MultiProgressColumn::make('translation_progress')
+    ->segments(fn (Language $record): array => [/* … */])
+    ->total(fn (Language $record): int => $record->keys_count)
+    ->valueSuffix('keys')
+    ->showPercentageFrom('md')   // hidden below md, visible from md up
+    ->showTotalFrom('md')
+    ->showLegendFrom('md');
+
+// Or hide from a breakpoint upward:
+->hidePercentageFrom('lg')
+->hideTotalFrom('lg')
+->hideLegendFrom('lg')
+```
+
+Each `show*From()` call also enables that feature (like calling `showPercentage()`). The
+percentage, total, and legend can use different breakpoints independently. Segment tooltips
+remain available on all screen sizes when enabled.
+
+`compact()` still suppresses the below-bar legend entirely; use `showLegendFrom()` when you
+want a legend on larger screens only.
 
 #### Empty & loading states
 

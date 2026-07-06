@@ -25,7 +25,11 @@ use Throwable;
  *     ->total(fn (Language $record): int => $record->keys_count)
  *     ->valueSuffix('keys')
  *     ->showPercentage()
- *     ->showLegend();
+ *     ->showPercentageFrom('md')
+ *     ->showTotal()
+ *     ->showTotalFrom('md')
+ *     ->showLegend()
+ *     ->showLegendFrom('md');
  * ```
  *
  * The full configuration API lives in {@see HasMultiProgressBar}, shared

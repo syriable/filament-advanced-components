@@ -340,3 +340,47 @@ it('uses the compact height and hides the legend in compact mode', function () {
     expect($column->getHeight())->toBe('0.375rem')
         ->and($column->shouldShowLegend())->toBeFalse();
 });
+
+it('applies responsive visibility classes to the legend', function () {
+    $html = MultiProgressColumn::make('progress')
+        ->segments([
+            ['label' => 'Done', 'value' => 1, 'color' => 'success'],
+        ])
+        ->showLegendFrom('md')
+        ->toHtml();
+
+    expect($html)->toContain('fi-multi-progress-legend')
+        ->and($html)->toContain('md:fi-visible')
+        ->and(MultiProgressColumn::make('progress')->showLegendFrom('md')->getLegendVisibleFrom())->toBe('md');
+});
+
+it('can hide the legend from a breakpoint', function () {
+    $html = MultiProgressColumn::make('progress')
+        ->segments([
+            ['label' => 'Done', 'value' => 1, 'color' => 'success'],
+        ])
+        ->showLegend()
+        ->hideLegendFrom('lg')
+        ->toHtml();
+
+    expect($html)->toContain('lg:fi-hidden')
+        ->and(MultiProgressColumn::make('progress')->hideLegendFrom('lg')->getLegendHiddenFrom())->toBe('lg');
+});
+
+it('applies responsive visibility classes to the percentage and total', function () {
+    $html = MultiProgressColumn::make('progress')
+        ->segments([
+            ['label' => 'Done', 'value' => 50, 'color' => 'success'],
+        ])
+        ->total(100)
+        ->showPercentageFrom('md')
+        ->showTotalFrom('lg')
+        ->toHtml();
+
+    expect($html)->toContain('fi-multi-progress-percentage')
+        ->and($html)->toContain('fi-multi-progress-total')
+        ->and($html)->toContain('md:fi-visible')
+        ->and($html)->toContain('lg:fi-visible')
+        ->and(MultiProgressColumn::make('progress')->showPercentageFrom('md')->getPercentageVisibleFrom())->toBe('md')
+        ->and(MultiProgressColumn::make('progress')->showTotalFrom('lg')->getTotalVisibleFrom())->toBe('lg');
+});

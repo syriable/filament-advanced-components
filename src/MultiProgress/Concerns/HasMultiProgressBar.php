@@ -53,9 +53,21 @@ trait HasMultiProgressBar
 
     protected bool | Closure $shouldShowPercentage = false;
 
+    protected string | Closure | null $percentageHiddenFrom = null;
+
+    protected string | Closure | null $percentageVisibleFrom = null;
+
     protected bool | Closure $shouldShowTotal = false;
 
+    protected string | Closure | null $totalHiddenFrom = null;
+
+    protected string | Closure | null $totalVisibleFrom = null;
+
     protected bool | Closure $shouldShowLegend = false;
+
+    protected string | Closure | null $legendHiddenFrom = null;
+
+    protected string | Closure | null $legendVisibleFrom = null;
 
     protected bool | Closure $hasSegmentTooltips = true;
 
@@ -178,11 +190,59 @@ trait HasMultiProgressBar
     }
 
     /**
+     * Shows the percentage from the given breakpoint and up.
+     */
+    public function showPercentageFrom(string | Closure | null $breakpoint): static
+    {
+        $this->percentageVisibleFrom = $breakpoint;
+        $this->percentageHiddenFrom = null;
+        $this->shouldShowPercentage = true;
+
+        return $this;
+    }
+
+    /**
+     * Hides the percentage from the given breakpoint and up.
+     */
+    public function hidePercentageFrom(string | Closure | null $breakpoint): static
+    {
+        $this->percentageHiddenFrom = $breakpoint;
+        $this->percentageVisibleFrom = null;
+        $this->shouldShowPercentage = true;
+
+        return $this;
+    }
+
+    /**
      * Shows the total count to the right of the bar, after the percentage.
      */
     public function showTotal(bool | Closure $condition = true): static
     {
         $this->shouldShowTotal = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Shows the total from the given breakpoint and up.
+     */
+    public function showTotalFrom(string | Closure | null $breakpoint): static
+    {
+        $this->totalVisibleFrom = $breakpoint;
+        $this->totalHiddenFrom = null;
+        $this->shouldShowTotal = true;
+
+        return $this;
+    }
+
+    /**
+     * Hides the total from the given breakpoint and up.
+     */
+    public function hideTotalFrom(string | Closure | null $breakpoint): static
+    {
+        $this->totalHiddenFrom = $breakpoint;
+        $this->totalVisibleFrom = null;
+        $this->shouldShowTotal = true;
 
         return $this;
     }
@@ -194,6 +254,31 @@ trait HasMultiProgressBar
     public function showLegend(bool | Closure $condition = true): static
     {
         $this->shouldShowLegend = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Shows the legend from the given breakpoint and up. Below that breakpoint
+     * the legend is hidden so the cell stays compact on small screens.
+     */
+    public function showLegendFrom(string | Closure | null $breakpoint): static
+    {
+        $this->legendVisibleFrom = $breakpoint;
+        $this->legendHiddenFrom = null;
+        $this->shouldShowLegend = true;
+
+        return $this;
+    }
+
+    /**
+     * Hides the legend from the given breakpoint and up.
+     */
+    public function hideLegendFrom(string | Closure | null $breakpoint): static
+    {
+        $this->legendHiddenFrom = $breakpoint;
+        $this->legendVisibleFrom = null;
+        $this->shouldShowLegend = true;
 
         return $this;
     }
@@ -457,6 +542,80 @@ trait HasMultiProgressBar
     public function shouldShowLegend(): bool
     {
         return (bool) $this->evaluate($this->shouldShowLegend) && ! $this->isCompact();
+    }
+
+    public function getLegendHiddenFrom(): ?string
+    {
+        return $this->evaluate($this->legendHiddenFrom);
+    }
+
+    public function getLegendVisibleFrom(): ?string
+    {
+        return $this->evaluate($this->legendVisibleFrom);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getLegendVisibilityClasses(): array
+    {
+        return $this->resolveResponsiveVisibilityClasses(
+            $this->getLegendHiddenFrom(),
+            $this->getLegendVisibleFrom(),
+        );
+    }
+
+    public function getPercentageHiddenFrom(): ?string
+    {
+        return $this->evaluate($this->percentageHiddenFrom);
+    }
+
+    public function getPercentageVisibleFrom(): ?string
+    {
+        return $this->evaluate($this->percentageVisibleFrom);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getPercentageVisibilityClasses(): array
+    {
+        return $this->resolveResponsiveVisibilityClasses(
+            $this->getPercentageHiddenFrom(),
+            $this->getPercentageVisibleFrom(),
+        );
+    }
+
+    public function getTotalHiddenFrom(): ?string
+    {
+        return $this->evaluate($this->totalHiddenFrom);
+    }
+
+    public function getTotalVisibleFrom(): ?string
+    {
+        return $this->evaluate($this->totalVisibleFrom);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getTotalVisibilityClasses(): array
+    {
+        return $this->resolveResponsiveVisibilityClasses(
+            $this->getTotalHiddenFrom(),
+            $this->getTotalVisibleFrom(),
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function resolveResponsiveVisibilityClasses(?string $hiddenFrom, ?string $visibleFrom): array
+    {
+        return array_values(array_filter([
+            filled($hiddenFrom) ? "{$hiddenFrom}:fi-hidden" : null,
+            filled($visibleFrom) ? "{$visibleFrom}:fi-visible" : null,
+        ]));
     }
 
     public function hasSegmentTooltips(): bool

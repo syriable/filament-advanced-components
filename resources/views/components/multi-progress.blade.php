@@ -143,15 +143,26 @@
                 @endforeach
             </div>
 
-            @if (filled($data['formattedPercentage']) || filled($data['formattedTotal']))
+            @if (
+                ($shouldShowPercentage() && filled($data['formattedPercentage']))
+                || ($shouldShowTotal() && filled($data['formattedTotal']))
+            )
                 <span class="fi-multi-progress-value">
-                    @if (filled($data['formattedPercentage']))
-                        {{ $data['formattedPercentage'] }}
+                    @if ($shouldShowPercentage() && filled($data['formattedPercentage']))
+                        <span @class([
+                            'fi-multi-progress-percentage',
+                            ...$getPercentageVisibilityClasses(),
+                        ])>
+                            {{ $data['formattedPercentage'] }}
+                        </span>
                     @endif
 
-                    @if (filled($data['formattedTotal']))
-                        <span class="fi-multi-progress-total">
-                            {{ filled($data['formattedPercentage']) ? '· ' : '' }}{{ $data['formattedTotal'] }}
+                    @if ($shouldShowTotal() && filled($data['formattedTotal']))
+                        <span @class([
+                            'fi-multi-progress-total',
+                            ...$getTotalVisibilityClasses(),
+                        ])>
+                            {{ $data['formattedTotal'] }}
                         </span>
                     @endif
                 </span>
@@ -159,7 +170,10 @@
         </div>
 
         @if ($shouldShowLegend())
-            <ul class="fi-multi-progress-legend">
+            <ul @class([
+                'fi-multi-progress-legend',
+                ...$getLegendVisibilityClasses(),
+            ])>
                 @foreach ($segments as $segment)
                     <li class="fi-multi-progress-legend-item">
                         <span class="fi-multi-progress-legend-dot {{ implode(' ', $segment['color']['classes']) }}"

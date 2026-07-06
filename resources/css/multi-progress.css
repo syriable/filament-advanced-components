@@ -142,6 +142,8 @@ a.fi-multi-progress-segment,
 
 /* The percentage / total label on the right of the bar. */
 .fi-multi-progress-value {
+    display: inline-flex;
+    align-items: center;
     flex-shrink: 0;
     font-size: 0.75rem;
     line-height: 1rem;
@@ -159,7 +161,16 @@ a.fi-multi-progress-segment,
     color: var(--gray-400);
 }
 
+.fi-multi-progress-total:not(:first-child)::before {
+    content: '· ';
+    color: var(--gray-400);
+}
+
 .dark .fi-multi-progress-total {
+    color: var(--gray-500);
+}
+
+.dark .fi-multi-progress-total:not(:first-child)::before {
     color: var(--gray-500);
 }
 
@@ -201,6 +212,177 @@ a.fi-multi-progress-segment,
     column-gap: 0.75rem;
     row-gap: 0.25rem;
     list-style: none;
+}
+
+/* Responsive visibility (mirrors Filament table column breakpoints). */
+.fi-multi-progress-legend.sm\:fi-visible,
+.fi-multi-progress-percentage.sm\:fi-visible,
+.fi-multi-progress-total.sm\:fi-visible {
+    display: none;
+}
+
+@media (min-width: 40rem) {
+    .fi-multi-progress-legend.sm\:fi-visible {
+        display: flex;
+    }
+
+    .fi-multi-progress-percentage.sm\:fi-visible,
+    .fi-multi-progress-total.sm\:fi-visible {
+        display: inline;
+    }
+}
+
+.fi-multi-progress-legend.md\:fi-visible,
+.fi-multi-progress-percentage.md\:fi-visible,
+.fi-multi-progress-total.md\:fi-visible {
+    display: none;
+}
+
+@media (min-width: 48rem) {
+    .fi-multi-progress-legend.md\:fi-visible {
+        display: flex;
+    }
+
+    .fi-multi-progress-percentage.md\:fi-visible,
+    .fi-multi-progress-total.md\:fi-visible {
+        display: inline;
+    }
+}
+
+.fi-multi-progress-legend.lg\:fi-visible,
+.fi-multi-progress-percentage.lg\:fi-visible,
+.fi-multi-progress-total.lg\:fi-visible {
+    display: none;
+}
+
+@media (min-width: 64rem) {
+    .fi-multi-progress-legend.lg\:fi-visible {
+        display: flex;
+    }
+
+    .fi-multi-progress-percentage.lg\:fi-visible,
+    .fi-multi-progress-total.lg\:fi-visible {
+        display: inline;
+    }
+}
+
+.fi-multi-progress-legend.xl\:fi-visible,
+.fi-multi-progress-percentage.xl\:fi-visible,
+.fi-multi-progress-total.xl\:fi-visible {
+    display: none;
+}
+
+@media (min-width: 80rem) {
+    .fi-multi-progress-legend.xl\:fi-visible {
+        display: flex;
+    }
+
+    .fi-multi-progress-percentage.xl\:fi-visible,
+    .fi-multi-progress-total.xl\:fi-visible {
+        display: inline;
+    }
+}
+
+.fi-multi-progress-legend.\32 xl\:fi-visible,
+.fi-multi-progress-percentage.\32 xl\:fi-visible,
+.fi-multi-progress-total.\32 xl\:fi-visible {
+    display: none;
+}
+
+@media (min-width: 96rem) {
+    .fi-multi-progress-legend.\32 xl\:fi-visible {
+        display: flex;
+    }
+
+    .fi-multi-progress-percentage.\32 xl\:fi-visible,
+    .fi-multi-progress-total.\32 xl\:fi-visible {
+        display: inline;
+    }
+}
+
+.fi-multi-progress-legend.sm\:fi-hidden {
+    display: flex;
+}
+
+.fi-multi-progress-percentage.sm\:fi-hidden,
+.fi-multi-progress-total.sm\:fi-hidden {
+    display: inline;
+}
+
+@media (min-width: 40rem) {
+    .fi-multi-progress-legend.sm\:fi-hidden,
+    .fi-multi-progress-percentage.sm\:fi-hidden,
+    .fi-multi-progress-total.sm\:fi-hidden {
+        display: none;
+    }
+}
+
+.fi-multi-progress-legend.md\:fi-hidden {
+    display: flex;
+}
+
+.fi-multi-progress-percentage.md\:fi-hidden,
+.fi-multi-progress-total.md\:fi-hidden {
+    display: inline;
+}
+
+@media (min-width: 48rem) {
+    .fi-multi-progress-legend.md\:fi-hidden,
+    .fi-multi-progress-percentage.md\:fi-hidden,
+    .fi-multi-progress-total.md\:fi-hidden {
+        display: none;
+    }
+}
+
+.fi-multi-progress-legend.lg\:fi-hidden {
+    display: flex;
+}
+
+.fi-multi-progress-percentage.lg\:fi-hidden,
+.fi-multi-progress-total.lg\:fi-hidden {
+    display: inline;
+}
+
+@media (min-width: 64rem) {
+    .fi-multi-progress-legend.lg\:fi-hidden,
+    .fi-multi-progress-percentage.lg\:fi-hidden,
+    .fi-multi-progress-total.lg\:fi-hidden {
+        display: none;
+    }
+}
+
+.fi-multi-progress-legend.xl\:fi-hidden {
+    display: flex;
+}
+
+.fi-multi-progress-percentage.xl\:fi-hidden,
+.fi-multi-progress-total.xl\:fi-hidden {
+    display: inline;
+}
+
+@media (min-width: 80rem) {
+    .fi-multi-progress-legend.xl\:fi-hidden,
+    .fi-multi-progress-percentage.xl\:fi-hidden,
+    .fi-multi-progress-total.xl\:fi-hidden {
+        display: none;
+    }
+}
+
+.fi-multi-progress-legend.\32 xl\:fi-hidden {
+    display: flex;
+}
+
+.fi-multi-progress-percentage.\32 xl\:fi-hidden,
+.fi-multi-progress-total.\32 xl\:fi-hidden {
+    display: inline;
+}
+
+@media (min-width: 96rem) {
+    .fi-multi-progress-legend.\32 xl\:fi-hidden,
+    .fi-multi-progress-percentage.\32 xl\:fi-hidden,
+    .fi-multi-progress-total.\32 xl\:fi-hidden {
+        display: none;
+    }
 }
 
 .fi-multi-progress-legend-item {
