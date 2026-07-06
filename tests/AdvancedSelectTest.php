@@ -161,6 +161,23 @@ it('activates rich mode and its native wiring once a SelectOption is present', f
         ->and($select->isHtmlAllowed())->toBeTrue();
 });
 
+it('activates rich mode when a closure resolves to SelectOption objects', function () {
+    $select = mountSelect(AdvancedSelect::make('code')->options(fn (): array => [
+        SelectOption::make('draft', 'Draft'),
+        SelectOption::make('published', 'Published'),
+        SelectOption::make('archived', 'Archived'),
+    ]));
+
+    expect($select->isHtmlAllowed())->toBeTrue()
+        ->and($select->isNative())->toBeFalse();
+
+    $options = $select->getOptions();
+
+    expect($select->hasRichOptions())->toBeTrue()
+        ->and($options)->toHaveKeys(['draft', 'published', 'archived'])
+        ->and($select->isOptionDisabled('draft', 'Draft'))->toBeFalse();
+});
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------

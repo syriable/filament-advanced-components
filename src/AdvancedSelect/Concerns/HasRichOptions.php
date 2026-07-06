@@ -196,6 +196,43 @@ trait HasRichOptions
         return $this->hasRichOptions;
     }
 
+    public function getOptions(): array
+    {
+        $this->ensureRichOptionsActivated();
+
+        return parent::getOptions();
+    }
+
+    public function isHtmlAllowed(): bool
+    {
+        $this->ensureRichOptionsActivated();
+
+        return parent::isHtmlAllowed();
+    }
+
+    public function isNative(): bool
+    {
+        $this->ensureRichOptionsActivated();
+
+        return parent::isNative();
+    }
+
+    /**
+     * Activate rich rendering when a closure (or other deferred input) resolves
+     * to {@see SelectOption} objects — the static check in {@see options()}
+     * cannot see inside a closure.
+     */
+    protected function ensureRichOptionsActivated(): void
+    {
+        if ($this->hasRichOptions()) {
+            return;
+        }
+
+        if ($this->arrayContainsRichOptions($this->evaluateRawOptions())) {
+            $this->activateRichOptions();
+        }
+    }
+
     /**
      * Swap the option renderer for this instance only, overriding the
      * container-bound {@see RendersOptions} default.
@@ -255,6 +292,16 @@ trait HasRichOptions
      */
     public function isOptionDisabled($value, string | Htmlable $label): bool
     {
+        $this->ensureRichOptionsActivated();
+
+        if ($label instanceof SelectOption) {
+            $value = $label->getValue();
+
+            if ($this->hasRichOptions()) {
+                return $this->isResolvedOptionDisabled($value);
+            }
+        }
+
         if ($this->hasRichOptions() && $this->isResolvedOptionDisabled($value)) {
             return true;
         }
