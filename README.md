@@ -1136,16 +1136,81 @@ Separator::make()->vertical();   // a full-height line, for use inside a Flex/Gr
 #### Variants
 
 `default()`, `subtle()`, `muted()` control the line's tone; `solid()`, `dashed()`, `dotted()`
-control its pattern:
+control its pattern; `zigzag()` draws a repeating sawtooth line via a conic-gradient mask:
 
 ```php
 Separator::make()->dashed();
 Separator::make()->subtle();
+Separator::make()->zigzag();
 ```
 
 This isn't a closed set — `variant('brand')` accepts any string, and the renderer attaches a
 matching `fi-separator-variant-brand` class for you to style in your own theme, so a custom
 variant needs no package changes.
+
+#### Label typography
+
+The optional label supports the same typography API as Filament's schema `Text` component —
+`size()`, `weight()`, and `fontFamily()` — using Filament's `TextSize`, `FontWeight`, and
+`FontFamily` enums (or raw class-name strings):
+
+```php
+use Filament\Support\Enums\FontFamily;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
+
+Separator::make('Section')
+    ->size(TextSize::Large)
+    ->weight(FontWeight::Bold)
+    ->fontFamily(FontFamily::Mono);
+```
+
+#### Thickness
+
+`thick()`, `thin()`, and `thickness()` control line weight on **every** variant. Border-based
+lines (solid, dashed, dotted, …) map to `--fi-separator-thickness`; the zigzag variant maps
+the same presets to its tooth geometry instead (see below).
+
+```php
+Separator::make()->dashed()->thick();      // 3px border
+Separator::make()->solid()->thick(5);      // 5px border
+Separator::make()->dotted()->thin();       // 1px border
+Separator::make()->thickness('2px');       // explicit CSS length
+```
+
+Integers are treated as pixels; strings such as `'0.125rem'` pass through unchanged.
+
+#### Zigzag sizing
+
+`zigzag()` uses a conic-gradient mask. Tune the tooth pattern with `zigzagSize()`,
+`zigzagDepth()`, and `zigzagAngle()`, or use the shared `thick()` / `thin()` presets:
+
+```php
+// Presets (zigzag only — border variants ignore zigzag variables)
+Separator::make()->zigzag()->thick();          // 100px period, 35px depth
+Separator::make()->zigzag()->thick(60, 20);    // custom period and depth
+Separator::make()->zigzag()->thin();           // 4px period, 1px depth
+
+// Granular control
+Separator::make()->zigzag()
+    ->zigzagSize('2rem')
+    ->zigzagDepth('0.5rem')
+    ->zigzagAngle(90);                         // 90 or '90deg'
+```
+
+These resolve to CSS custom properties on the separator root:
+
+| Call | Border variants | Zigzag variant |
+|---|---|---|
+| `thick()` | `--fi-separator-thickness: 3px` | `--fi-separator-zigzag-s: 100px`, `-b: 35px` |
+| `thick(5)` | `--fi-separator-thickness: 5px` | same as `thick()` unless a second arg is passed |
+| `thick(60, 20)` | ignored | `--fi-separator-zigzag-s: 60px`, `-b: 20px` |
+| `thin()` | `--fi-separator-thickness: 1px` | `--fi-separator-zigzag-s: 4px`, `-b: 1px` |
+| `zigzagAngle(90)` | — | `--fi-separator-zigzag-a: 90deg` |
+
+Without `thick()` / `thin()` / the granular setters, zigzag falls back to the package stylesheet
+defaults. Override any variable in your own CSS or via `extraAttributes(['style' => '...'])` if
+you prefer.
 
 #### Color
 
