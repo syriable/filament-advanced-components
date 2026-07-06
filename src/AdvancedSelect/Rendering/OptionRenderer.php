@@ -72,7 +72,7 @@ class OptionRenderer implements RendersOptions
             ->class([...$baseClasses, ...$option->extraClasses]);
 
         if (filled($option->color)) {
-            $attributes = $attributes->style([
+            return $attributes->style([
                 '--fi-adv-select-option-color: ' . ColorResolver::toCss($option->color),
             ]);
         }

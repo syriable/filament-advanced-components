@@ -41,7 +41,7 @@ trait HasLabelTypography
         }
 
         if (is_string($size)) {
-            $size = TextSize::tryFrom($size) ?? $size;
+            return TextSize::tryFrom($size) ?? $size;
         }
 
         return $size;

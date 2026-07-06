@@ -59,7 +59,10 @@ readonly class SeparatorViewModel
 
     public function hasContent(): bool
     {
-        return $this->hasLabel() || $this->hasIcon();
+        if ($this->hasLabel()) {
+            return true;
+        }
+        return $this->hasIcon();
     }
 
     public function isIconBeforeLabel(): bool

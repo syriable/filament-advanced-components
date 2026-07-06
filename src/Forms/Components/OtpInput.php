@@ -133,22 +133,20 @@ class OtpInput extends Field
 
         // Exact length + character policy, enforced server-side and skipped
         // for an empty optional value (the `required` rule owns emptiness).
-        $this->rule(static function (OtpInput $component): Closure {
-            return static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
-                if (blank($value)) {
-                    return;
-                }
+        $this->rule(static fn(OtpInput $component): Closure => static function (string $attribute, mixed $value, Closure $fail) use ($component): void {
+            if (blank($value)) {
+                return;
+            }
 
-                $length = $component->getLength();
-                $class = $component->getMode()->characterClass();
+            $length = $component->getLength();
+            $class = $component->getMode()->characterClass();
 
-                if (! preg_match("/^[{$class}]{{$length}}$/u", (string) $value)) {
-                    $fail(__('filament-advanced-components::otp-input.validation.invalid', [
-                        'attribute' => $component->getValidationAttribute(),
-                        'length' => $length,
-                    ]));
-                }
-            };
+            if (! preg_match("/^[{$class}]{{$length}}$/u", (string) $value)) {
+                $fail(__('filament-advanced-components::otp-input.validation.invalid', [
+                    'attribute' => $component->getValidationAttribute(),
+                    'length' => $length,
+                ]));
+            }
         });
     }
 
@@ -203,7 +201,7 @@ class OtpInput extends Field
     public function getPlaceholders(): array
     {
         $length = $this->getLength();
-        $placeholder = (string) ($this->getPlaceholder() ?? '');
+        $placeholder = $this->getPlaceholder() ?? '';
 
         if ($placeholder === '') {
             return array_fill(0, $length, '');

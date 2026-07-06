@@ -67,8 +67,10 @@ trait HasGrouping
 
             foreach ($group as $size) {
                 $size = (int) $size;
-
-                if ($size <= 0 || $remaining <= 0) {
+                if ($size <= 0) {
+                    continue;
+                }
+                if ($remaining <= 0) {
                     continue;
                 }
 
