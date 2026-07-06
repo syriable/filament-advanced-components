@@ -26,9 +26,7 @@
     $navigationExpression = function (array $segment): string {
         $url = Js::from($segment['url']);
 
-        return $segment['shouldOpenUrlInNewTab']
-            ? "window.open({$url}, '_blank')"
-            : "window.location.href = {$url}";
+        return $segment['shouldOpenUrlInNewTab'] ? "window.open({$url}, '_blank')" : "window.location.href = {$url}";
     };
 
     // Sizing is passed to the stylesheet through CSS custom properties, so
@@ -39,51 +37,43 @@
         '--fi-ta-mp-radius: ' . $getBorderRadius(),
     ]);
 
-    $tooltipAttribute = function (string | Htmlable | null $tooltip): ?string {
+    $tooltipAttribute = function (string|Htmlable|null $tooltip): ?string {
         if (blank($tooltip)) {
             return null;
         }
 
         return '{
-            content: ' . Js::from($tooltip instanceof Htmlable ? $tooltip->toHtml() : $tooltip) . ',
+            content: ' .
+            Js::from($tooltip instanceof Htmlable ? $tooltip->toHtml() : $tooltip) .
+            ',
             theme: $store.theme,
-            allowHTML: ' . Js::from($tooltip instanceof Htmlable) . ',
+            allowHTML: ' .
+            Js::from($tooltip instanceof Htmlable) .
+            ',
         }';
     };
 @endphp
 
 <div
-    {{
-        $getExtraAttributeBag()
-            ->class([
-                'fi-multi-progress',
-                'fi-multi-progress-compact' => $isCompact,
-                'fi-multi-progress-animated' => $isAnimated(),
-                'fi-multi-progress-striped' => $isStriped(),
-                'fi-multi-progress-gradient' => $hasGradient(),
-                'fi-multi-progress-hoverable' => $hasHoverEffect(),
-            ])
-            ->style([$rootStyles])
-    }}
->
+    {{ $getExtraAttributeBag()->class([
+            'fi-multi-progress',
+            'fi-multi-progress-compact' => $isCompact,
+            'fi-multi-progress-animated' => $isAnimated(),
+            'fi-multi-progress-striped' => $isStriped(),
+            'fi-multi-progress-gradient' => $hasGradient(),
+            'fi-multi-progress-hoverable' => $hasHoverEffect(),
+        ])->style([$rootStyles]) }}>
     @if ($data['isEmpty'])
         @if ($hasSkeleton())
             {{-- Loading skeleton: a pulsing placeholder track. --}}
             <div class="fi-multi-progress-row">
-                <div
-                    class="fi-multi-progress-track fi-multi-progress-skeleton"
-                    role="status"
-                    aria-label="{{ __('filament-advanced-components::multi-progress.loading') }}"
-                ></div>
+                <div class="fi-multi-progress-track fi-multi-progress-skeleton" role="status"
+                    aria-label="{{ __('filament-advanced-components::multi-progress.loading') }}"></div>
             </div>
         @else
             {{-- Empty state: the column's configured placeholder, if any. --}}
             <div class="fi-multi-progress-row">
-                <div
-                    class="fi-multi-progress-track"
-                    role="img"
-                    aria-label="{{ $data['ariaLabel'] }}"
-                ></div>
+                <div class="fi-multi-progress-track" role="img" aria-label="{{ $data['ariaLabel'] }}"></div>
 
                 @if (filled($placeholder))
                     <span class="fi-multi-progress-placeholder">
@@ -107,15 +97,12 @@
                     @continue($segment['width'] <= 0)
 
                     @php
-                        $segmentClasses = implode(' ', [
-                            'fi-multi-progress-segment',
-                            ...$segment['color']['classes'],
-                        ]);
+                        $segmentClasses = implode(' ', ['fi-multi-progress-segment', ...$segment['color']['classes']]);
 
-                        $segmentStyles = implode(';', array_filter([
-                            'width: ' . $segment['width'] . '%',
-                            $segment['color']['styles'],
-                        ]));
+                        $segmentStyles = implode(
+                            ';',
+                            array_filter(['width: ' . $segment['width'] . '%', $segment['color']['styles']]),
+                        );
 
                         $segmentAriaLabel = filled($segment['label'])
                             ? "{$segment['label']}: {$segment['formattedValue']} ({$segment['formattedPercentage']})"
@@ -131,50 +118,27 @@
                             that navigates via script and stops the click from
                             also triggering the surrounding cell link.
                         --}}
-                        <div
-                            role="link"
-                            tabindex="0"
-                            class="{{ $segmentClasses }}"
-                            style="{{ $segmentStyles }}"
+                        <div role="link" tabindex="0" class="{{ $segmentClasses }}" style="{{ $segmentStyles }}"
                             aria-label="{{ $segmentAriaLabel }}"
                             x-on:click.stop.prevent="{{ $navigationExpression($segment) }}"
                             x-on:keydown.enter.stop.prevent="{{ $navigationExpression($segment) }}"
-                            @if ($tooltip)
-                                x-tooltip="{{ $tooltip }}"
-                            @endif
-                        ></div>
+                            @if ($tooltip) x-tooltip="{{ $tooltip }}" @endif></div>
                     @elseif (filled($segment['url']))
                         {{-- Clickable segment: a real link, natively focusable. --}}
-                        <a
-                            {!! \Filament\Support\generate_href_html($segment['url'], $segment['shouldOpenUrlInNewTab'])->toHtml() !!}
-                            class="{{ $segmentClasses }}"
-                            style="{{ $segmentStyles }}"
+                        <a {!! \Filament\Support\generate_href_html($segment['url'], $segment['shouldOpenUrlInNewTab'])->toHtml() !!} class="{{ $segmentClasses }}" style="{{ $segmentStyles }}"
                             aria-label="{{ $segmentAriaLabel }}"
-                            @if ($tooltip)
-                                x-tooltip="{{ $tooltip }}"
-                            @endif
-                        ></a>
+                            @if ($tooltip) x-tooltip="{{ $tooltip }}" @endif></a>
                     @elseif ($tooltip)
                         {{--
                             Tooltip-only segment: focusable so keyboard users can
                             trigger the tooltip, and labelled for screen readers
                             (a focusable element must never be aria-hidden).
                         --}}
-                        <div
-                            class="{{ $segmentClasses }}"
-                            style="{{ $segmentStyles }}"
-                            role="img"
-                            aria-label="{{ $segmentAriaLabel }}"
-                            tabindex="0"
-                            x-tooltip="{{ $tooltip }}"
-                        ></div>
+                        <div class="{{ $segmentClasses }}" style="{{ $segmentStyles }}" role="img"
+                            aria-label="{{ $segmentAriaLabel }}" tabindex="0" x-tooltip="{{ $tooltip }}"></div>
                     @else
                         {{-- Purely decorative: the summary above covers it. --}}
-                        <div
-                            class="{{ $segmentClasses }}"
-                            style="{{ $segmentStyles }}"
-                            aria-hidden="true"
-                        ></div>
+                        <div class="{{ $segmentClasses }}" style="{{ $segmentStyles }}" aria-hidden="true"></div>
                     @endif
                 @endforeach
             </div>
@@ -198,13 +162,9 @@
             <ul class="fi-multi-progress-legend">
                 @foreach ($segments as $segment)
                     <li class="fi-multi-progress-legend-item">
-                        <span
-                            class="fi-multi-progress-legend-dot {{ implode(' ', $segment['color']['classes']) }}"
-                            @if (filled($segment['color']['styles']))
-                                style="{{ $segment['color']['styles'] }}"
-                            @endif
-                            aria-hidden="true"
-                        ></span>
+                        <span class="fi-multi-progress-legend-dot {{ implode(' ', $segment['color']['classes']) }}"
+                            @if (filled($segment['color']['styles'])) style="{{ $segment['color']['styles'] }}" @endif
+                            aria-hidden="true"></span>
 
                         @if (filled($segment['iconHtml']))
                             <span class="fi-multi-progress-legend-icon" aria-hidden="true">
