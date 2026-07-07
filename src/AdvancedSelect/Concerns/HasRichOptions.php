@@ -221,6 +221,14 @@ trait HasRichOptions
      * Activate rich rendering when a closure (or other deferred input) resolves
      * to {@see SelectOption} objects — the static check in {@see options()}
      * cannot see inside a closure.
+     *
+     * Classification mirrors {@see options()} exactly, so the deferred path can
+     * never disagree with the set-time one: an enum is judged by whether its
+     * cases carry rich data ({@see isRichEnum()}), *never* by expanding it into
+     * {@see SelectOption} objects — otherwise a plain, label-only enum would be
+     * wrongly promoted to rich (and forced non-native) the moment
+     * {@see isNative()}, {@see getOptions()}, or {@see isHtmlAllowed()} touched
+     * it.
      */
     protected function ensureRichOptionsActivated(): void
     {
@@ -228,7 +236,17 @@ trait HasRichOptions
             return;
         }
 
-        if ($this->arrayContainsRichOptions($this->evaluateRawOptions())) {
+        $options = $this->evaluate($this->rawOptions);
+
+        if (is_string($options) && enum_exists($options)) {
+            if ($this->isRichEnum($options)) {
+                $this->activateRichOptions();
+            }
+
+            return;
+        }
+
+        if ($this->arrayContainsRichOptions($options)) {
             $this->activateRichOptions();
         }
     }
