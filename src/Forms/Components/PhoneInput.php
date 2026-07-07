@@ -9,6 +9,7 @@ use Filament\Forms\Components\Concerns\CanBeReadOnly;
 use Filament\Forms\Components\Concerns\HasPlaceholder;
 use Filament\Forms\Components\Field;
 use Filament\Support\Concerns\HasExtraAlpineAttributes;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Concerns\CapturesCountry;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Concerns\DetectsCountry;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Concerns\HasCountries;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Concerns\HasCountrySelector;
@@ -62,14 +63,15 @@ use Syriable\Filament\Plugins\AdvancedComponents\Phone\Rendering\PhoneViewModel;
  * Configuration is split across focused concerns — {@see HasCountries},
  * {@see DetectsCountry}, {@see HasPhoneFormatting}, {@see HasPhoneValidation},
  * {@see HasCountrySelector}, {@see HasPhoneExtension}, {@see HasPhoneAppearance},
- * {@see InteractsWithPhoneServices} — and the four collaborators (metadata
- * provider, formatter, normalizer, validator) are each replaceable per field or
- * globally. A single {@see PhoneViewModel} is resolved once per render for both
- * Blade and Alpine.
+ * {@see CapturesCountry}, {@see InteractsWithPhoneServices} — and the four
+ * collaborators (metadata provider, formatter, normalizer, validator) are each
+ * replaceable per field or globally. A single {@see PhoneViewModel} is
+ * resolved once per render for both Blade and Alpine.
  */
 class PhoneInput extends Field
 {
     use CanBeReadOnly;
+    use CapturesCountry;
     use DetectsCountry;
     use HasCountries;
     use HasCountrySelector;
@@ -194,6 +196,62 @@ class PhoneInput extends Field
     public function getPhoneNumber(): PhoneNumberData
     {
         return $this->parseState($this->getState());
+    }
+
+    /**
+     * The number's own ISO 3166-1 alpha-2 country, resolved from the number
+     * itself — never from the application locale, the authenticated user, or
+     * any other ambient setting. `null` while the number is blank or
+     * unparseable. A thin, discoverable wrapper over {@see getPhoneNumber()}
+     * for use in callbacks (`afterStateUpdated()`, `mutateFormDataBeforeSave`,
+     * a validation rule, …) that shouldn't need to know about
+     * {@see PhoneNumberData}.
+     */
+    public function getCountry(): ?string
+    {
+        return $this->getPhoneNumber()->country;
+    }
+
+    /**
+     * The number's own E.164 calling code (1 to 3 digits — never a fixed
+     * width, and not unique to one country: see {@see CapturesCountry}).
+     * `null` while the number is blank or unparseable.
+     */
+    public function getDialCode(): ?int
+    {
+        return $this->getPhoneNumber()->dialCode;
+    }
+
+    /**
+     * Beyond the field's own key, project the number's country and/or dial
+     * code onto whatever sibling paths {@see CapturesCountry} configured —
+     * both are no-ops when their capture is disabled (the default). Nothing
+     * needs to exist in the schema for those paths: Filament merges every
+     * component's {@see getStateToDehydrate()} entries into one flat array
+     * before a save, so a plain fillable model column is enough to receive
+     * the projected value.
+     *
+     * @return array<string, mixed>
+     */
+    public function getStateToDehydrate(mixed $state): array
+    {
+        $dehydrated = parent::getStateToDehydrate($state);
+
+        if (! $this->capturesAnything()) {
+            return $dehydrated;
+        }
+
+        $number = $this->parseState($state);
+
+        if ($path = $this->getCountryCaptureStatePath()) {
+            $dehydrated[$this->resolveCaptureStatePath($path)] = $number->country;
+        }
+
+        if ($path = $this->getDialCodeCaptureStatePath()) {
+            $dehydrated[$this->resolveCaptureStatePath($path)] = $number->dialCode;
+        }
+
+        return $dehydrated;
     }
 
     /**

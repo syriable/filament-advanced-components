@@ -345,3 +345,84 @@ it('renders copy and clear affordances', function () {
     expect($html)->toContain('copy()')
         ->and($html)->toContain('clear()');
 });
+
+// ---------------------------------------------------------------------------
+// Country / dial-code capture
+// ---------------------------------------------------------------------------
+
+it('captures nothing by default', function () {
+    $field = makePhone();
+
+    expect($field->capturesCountry())->toBeFalse()
+        ->and($field->capturesDialCode())->toBeFalse()
+        ->and($field->capturesAnything())->toBeFalse()
+        ->and($field->getStateToDehydrate('+14155552671'))->toBe([$field->getStatePath() => '+14155552671']);
+});
+
+it('projects the resolved country onto a sibling state path on save', function () {
+    $field = makePhone()->captureCountryTo('phone_country');
+
+    expect($field->capturesCountry())->toBeTrue()
+        ->and($field->getStateToDehydrate('+442079460958'))->toBe([
+            $field->getStatePath() => '+442079460958',
+            'phone_country' => 'GB',
+        ]);
+});
+
+it('projects the resolved dial code onto a sibling state path on save', function () {
+    $field = makePhone()->captureDialCodeTo('phone_dial_code');
+
+    expect($field->capturesDialCode())->toBeTrue()
+        ->and($field->getStateToDehydrate('+442079460958'))->toBe([
+            $field->getStatePath() => '+442079460958',
+            'phone_dial_code' => 44,
+        ]);
+});
+
+it('captures both independently, in the configured storage format', function () {
+    $field = makePhone()
+        ->storeNational()
+        ->captureCountryTo('phone_country')
+        ->captureDialCodeTo('phone_dial_code');
+
+    expect($field->getStateToDehydrate('+442079460958'))->toBe([
+        $field->getStatePath() => '020 7946 0958',
+        'phone_country' => 'GB',
+        'phone_dial_code' => 44,
+    ]);
+});
+
+it('captures null for a blank or unparseable number, never the wrong country', function () {
+    $field = makePhone()->captureCountryTo('phone_country')->captureDialCodeTo('phone_dial_code');
+
+    expect($field->getStateToDehydrate(''))->toBe([
+        $field->getStatePath() => null,
+        'phone_country' => null,
+        'phone_dial_code' => null,
+    ])
+        ->and($field->getStateToDehydrate('garbage'))->toBe([
+            $field->getStatePath() => 'garbage',
+            'phone_country' => null,
+            'phone_dial_code' => null,
+        ]);
+});
+
+it('resolves the sibling path relative to the field\'s own container, not the app root', function () {
+    $schema = Schema::make(new SchemaLivewireComponent)->statePath('contact');
+    $field = PhoneInput::make('phone')->captureCountryTo('phone_country')->container($schema);
+
+    expect($field->getStatePath())->toBe('contact.phone')
+        ->and($field->getStateToDehydrate('+14155552671'))->toBe([
+            'contact.phone' => '+14155552671',
+            'contact.phone_country' => 'US',
+        ]);
+});
+
+it('exposes the resolved country and dial code as plain accessors', function () {
+    $field = makePhone();
+    $field->state('+966501234567');
+    $field->callAfterStateHydrated();
+
+    expect($field->getCountry())->toBe('SA')
+        ->and($field->getDialCode())->toBe(966);
+});
