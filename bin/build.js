@@ -66,3 +66,11 @@ compile({
 }).then(() => {
     console.log(`Build completed for components/otp-input.js`)
 })
+
+compile({
+    ...defaultOptions,
+    entryPoints: ['./resources/js/components/phone-input.js'],
+    outfile: './resources/dist/components/phone-input.js',
+}).then(() => {
+    console.log(`Build completed for components/phone-input.js`)
+})

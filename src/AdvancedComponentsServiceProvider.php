@@ -23,6 +23,14 @@ use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\TextMasker
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction;
 use Syriable\Filament\Plugins\AdvancedComponents\Commands\AdvancedComponentsCommand;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\FormatsPhoneNumbers;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\NormalizesPhoneNumbers;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\PhoneMetadataProvider;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\ValidatesPhoneNumbers;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Formatting\PhoneNumberFormatter;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Metadata\LibPhoneNumberProvider;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Normalization\PhoneNumberNormalizer;
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Validation\PhoneNumberValidator;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Contracts\RendersSeparator;
 use Syriable\Filament\Plugins\AdvancedComponents\Separator\Rendering\SeparatorRenderer;
 use Syriable\Filament\Plugins\AdvancedComponents\Testing\TestsAdvancedComponents;
@@ -90,6 +98,18 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         // change how every confirmation modal is constructed globally,
         // without subclassing the component.
         $this->app->singleton(BuildsConfirmationAction::class, ConfirmationManager::class);
+
+        // The PhoneInput metadata/formatting/validation stack, all backed by
+        // libphonenumber and resolved offline. Each layer is bound to its
+        // contract, so an application can rebind any single one — a leaner
+        // country dataset, a house formatting style, a stricter validator —
+        // without touching the field. The formatter and normalizer are wired
+        // to whichever provider/formatter won, so overriding upstream flows
+        // through automatically.
+        $this->app->singleton(PhoneMetadataProvider::class, LibPhoneNumberProvider::class);
+        $this->app->singleton(FormatsPhoneNumbers::class, PhoneNumberFormatter::class);
+        $this->app->singleton(NormalizesPhoneNumbers::class, PhoneNumberNormalizer::class);
+        $this->app->singleton(ValidatesPhoneNumbers::class, PhoneNumberValidator::class);
     }
 
     public function packageBooted(): void
@@ -134,6 +154,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         return [
             AlpineComponent::make('package-comparison', __DIR__ . '/../resources/dist/components/package-comparison.js'),
             AlpineComponent::make('otp-input', __DIR__ . '/../resources/dist/components/otp-input.js'),
+            AlpineComponent::make('phone-input', __DIR__ . '/../resources/dist/components/phone-input.js'),
             Css::make('advanced-select', __DIR__ . '/../resources/css/advanced-select.css'),
             Css::make('advanced-toggle', __DIR__ . '/../resources/css/advanced-toggle.css'),
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
@@ -141,6 +162,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
             Css::make('package-comparison', __DIR__ . '/../resources/css/package-comparison.css'),
             Css::make('separator', __DIR__ . '/../resources/css/separator.css'),
             Css::make('otp-input', __DIR__ . '/../resources/css/otp-input.css'),
+            Css::make('phone-input', __DIR__ . '/../resources/css/phone-input.css'),
         ];
     }
 

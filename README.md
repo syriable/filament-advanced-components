@@ -1578,6 +1578,210 @@ a given click needs to be intercepted at all (`requiresConfirmationWhenTurningOn
 configuration — including whether to render the interception wrapper at all, which is skipped
 entirely once neither direction currently requires confirmation.
 
+### PhoneInput
+
+An enterprise-grade international phone-number field, backed by
+[libphonenumber](https://github.com/giggsey/libphonenumber-for-php) and behaving exactly like a
+native Filament field. It handles local and international numbers, validation, formatting,
+normalization, storage, and display — with a searchable country selector, flags, dial codes,
+per-country example numbers, dynamic masking, extensions, and copy/clear affordances — without
+you writing a line of phone logic.
+
+```
+┌──────────────────────────────────────────────┐
+│ 🇬🇧 +44 │ 07400 123456          │  ⧉  ✕  │   selector · national input · copy · clear
+└──────────────────────────────────────────────┘
+   e.g. 07400 123456                                example hint (optional)
+```
+
+**One clean scalar, PHP as the source of truth.** However rich the widget looks, the field's
+state is a single string. The client composes a *self-describing* E.164 transport value
+(`+<code><digits>`, plus an optional `;ext=`) and the server does everything that matters with
+it — parses it with libphonenumber, validates it, and normalizes it into your chosen storage
+format. Nothing the client asserts is trusted; the number is parsed, validated, and formatted
+again server-side. Because the transport is self-describing, the country is embedded in the
+value: the selector is a convenience, not a second column to keep in sync.
+
+**Everything is offline.** The country catalog, calling codes, example numbers, validity, and
+line types all come from libphonenumber's bundled dataset. The field never makes a network
+request to validate or format a number.
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\PhoneInput;
+
+PhoneInput::make('phone');
+```
+
+That's a complete, validating, international phone field: a searchable country selector, the
+country detected from your app locale, E.164 storage, and international display. Everything
+below is optional refinement.
+
+```php
+PhoneInput::make('phone')
+    ->defaultCountry('GB')
+    ->preferredCountries(['GB', 'US', 'DE'])
+    ->showExample()
+    ->copyable()
+    ->clearable();
+```
+
+#### Storage & display formats
+
+The field keeps the two formats it juggles deliberately separate — what lands in the database,
+and how a saved value reads when it re-hydrates:
+
+```php
+PhoneInput::make('phone')
+    ->storeE164()          // +14155552671  (default — country embedded, round-trips cleanly)
+    ->displayInternational(); // +1 415-555-2671 (default)
+```
+
+| Storage                 | Example              | Display                    | Example              |
+| ----------------------- | -------------------- | -------------------------- | -------------------- |
+| `->storeE164()`         | `+14155552671`       | `->displayInternational()` | `+1 415-555-2671`    |
+| `->storeNational()`     | `(415) 555-2671`     | `->displayNational()`      | `(415) 555-2671`     |
+| `->storeInternational()`| `+1 415-555-2671`    | `->displayE164()`          | `+14155552671`       |
+| `->storeRfc3966()`      | `tel:+1-415-555-2671`|                            |                      |
+| `->storeRaw()`          | `14155552671`        |                            |                      |
+
+Or pass a `PhoneFormat` (or a closure) directly to `->storeAs(...)` / `->displayAs(...)`. E.164
+is the recommended storage format because the country is embedded; national and raw formats drop
+the calling code, so they need a stable `->defaultCountry()` to hydrate back.
+
+#### Validation
+
+Every submitted number is re-parsed and re-validated server-side, whatever the client allowed.
+Fields are **strict** by default — they require a genuinely valid, assigned number, not merely
+one of plausible length:
+
+```php
+PhoneInput::make('phone')
+    ->lenient()                              // accept any "possible" number (messy imports)
+    ->mobileOnly()                           // or ->fixedLineOnly(), or:
+    ->validateTypes([PhoneNumberType::Mobile, PhoneNumberType::Voip]);
+```
+
+Failures report a precise, translatable reason — `too_short`, `invalid_country`, `invalid_type`,
+`country_not_allowed`, and so on — rather than a generic "invalid phone number". Blank optional
+fields validate as absent; presence is the `required()` rule's job.
+
+#### Country restrictions
+
+```php
+PhoneInput::make('phone')
+    ->allowedCountries(['GB', 'US', 'DE'])   // or ->onlyCountries([...])
+    ->blockedCountries(['RU'])               // allow-list wins when both are set
+    ->preferredCountries(['GB', 'US']);      // pinned to the top, in order
+```
+
+All three accept ISO codes **or** a closure, so the catalog can depend on the record, the
+tenant, or the authenticated user. A submitted number from a disallowed country fails validation
+server-side.
+
+#### Country detection
+
+A fresh, empty field runs an ordered detection pipeline and starts on the first strategy that
+yields an *allowed* country. The order is your priority:
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Phone\Enums\CountryDetectionStrategy;
+
+PhoneInput::make('phone')
+    ->detectCountry([
+        CountryDetectionStrategy::UserPreference,
+        CountryDetectionStrategy::AppLocale,
+        CountryDetectionStrategy::Fallback,
+    ])
+    ->countryResolver(fn () => auth()->user()?->country)          // UserPreference
+    ->detectCountryUsing(fn () => geoip(request()->ip())->iso_code) // Callback (GeoIP, headers, …)
+    ->fallbackCountry('US');
+```
+
+`AppLocale` derives the region from Laravel's active locale (`en_GB` → `GB`). GeoIP, request
+headers, and tenancy plug in through `detectCountryUsing()`, so the package never takes a
+dependency on any of them. A number that already has a value dictates its own country — detection
+only matters when there's nothing to derive from.
+
+#### Selector, extensions & affordances
+
+```php
+PhoneInput::make('phone')
+    ->withoutCountrySelector()   // single-country field, national input only
+    ->showFlags(false)
+    ->showDialCode(false)
+    ->enableSearch()             // search by name, ISO code, or dial code
+    ->searchDebounce(200)
+    ->enableExtension()          // +1 415-555-2671 ext 89 — preserved through the pipeline
+    ->showExample()              // reactive "e.g. …" hint, follows the selected country
+    ->showType()                 // Mobile / Landline / VOIP badge (server-resolved)
+    ->copyable()                 // copy the normalized number
+    ->clearable()
+    ->placeholderFromCountry();  // default: the country's example number as the placeholder
+```
+
+Placeholders, masks, and example numbers all follow the selected country **reactively**, with no
+Livewire round-trip. Pasting an international number (`+44 20 7946 0958`, or `0044…`) detects the
+country, strips junk, and formats automatically.
+
+#### Native Filament integration
+
+`PhoneInput` extends `Field`, so every method you'd expect works unchanged:
+`required()`, `disabled()`, `readOnly()`, `live()`, `reactive()`, `afterStateUpdated()`,
+`dehydrated()`, `helperText()`, `hint()`, `extraAttributes()`, `columnSpan()`, and the rest.
+
+#### Client events
+
+The widget dispatches bubbling DOM events you can hook into with `x-on:` or a listener:
+
+| Event                   | Detail                          | When                                   |
+| ----------------------- | ------------------------------- | -------------------------------------- |
+| `phone-changed`         | `{ value, country }`            | the number changed                     |
+| `phone-country-changed` | `{ country, dialCode }`         | a country was selected                 |
+| `phone-copied`          | `{ value }`                     | the copy button succeeded              |
+
+#### Extending
+
+Every layer is a contract resolved from the container, so you can swap one without touching the
+field — per instance, or globally in a service provider:
+
+```php
+PhoneInput::make('phone')
+    ->metadataProvider(new MyLeanCountryProvider)  // the whole country/parse/format source
+    ->formatter(new MyHouseStyleFormatter)         // how numbers are formatted
+    ->normalizer(new MyStorageNormalizer)          // exactly what gets persisted
+    ->validator(new MyStrictValidator);            // the validation policy
+```
+
+```php
+// Globally, in a service provider:
+$this->app->bind(
+    \Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\PhoneMetadataProvider::class,
+    MyLeanCountryProvider::class,
+);
+```
+
+The bundled defaults — `LibPhoneNumberProvider`, `PhoneNumberFormatter`, `PhoneNumberNormalizer`,
+`PhoneNumberValidator` — are wired so overriding one upstream flows through the rest (override
+just the provider and the formatter and normalizer follow).
+
+#### Accessibility & UX
+
+The country selector is a keyboard-navigable combobox (`aria-haspopup`, arrow keys, type-to-
+search, `Escape` to close); the national input uses `type="tel"` with `inputmode="tel"` for the
+right mobile keyboard. The control is theme-aware (native light/dark), RTL-safe (logical
+properties throughout), and honors `forced-colors` / high-contrast mode. Flags are pure emoji
+derived from the ISO code, so the package ships no image assets and makes no sprite requests.
+
+#### Performance
+
+With the default deferred binding, typing costs **zero** Livewire round-trips — the client owns
+all interaction and syncs the composed value only when the form reads it. The country catalog is
+resolved once per render and memoized per locale; example numbers are memoized in the provider
+and built only when something actually needs them. The Alpine layer reads a single pre-computed
+`PhoneViewModel`, so no configuration is ever re-derived in JavaScript.
+
 ## Testing
 
 ```bash
