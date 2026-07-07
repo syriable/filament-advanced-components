@@ -1809,6 +1809,46 @@ headers, and tenancy plug in through `detectCountryUsing()`, so the package neve
 dependency on any of them. A number that already has a value dictates its own country — detection
 only matters when there's nothing to derive from.
 
+#### Capturing the number's own country
+
+Detection (above) picks a *starting* country for an empty field. This is the opposite direction:
+persisting the country a *filled-in* number actually belongs to — which may have nothing to do
+with the user's profile country. A support agent logging a customer's alternate number, a signup
+completed while travelling, a household's shared account: the number itself, not any ambient
+setting, is the only trustworthy source for "which country is this phone from".
+
+```php
+PhoneInput::make('phone')
+    ->captureCountryTo('phone_country')      // ISO alpha-2, e.g. "SA" — always 2 letters
+    ->captureDialCodeTo('phone_dial_code');  // E.164 calling code, e.g. 966 — 1 to 3 digits, not unique
+```
+
+Both are off by default — call either (or both) to opt in. There's nothing to wire up: on save, the
+resolved value is injected directly into the form's saved state next to the phone field's own key,
+so a plain fillable column on the model is enough to receive it — no hidden field, no `$set()`, no
+`->live()`. The path is relative to the field's own container, so it still lands correctly inside a
+repeater or a nested `Group`. Each projects `null` while the number is blank or unparseable, and the
+freshly resolved value the moment it becomes a real number — always derived from the number as
+currently typed, never stale.
+
+> [!TIP]
+> Calling codes are 1 to 3 digits (`+1` for the US, `+44` for the UK, `+966` for Saudi Arabia) and
+> several countries share one (`+1` also covers Canada and most of the Caribbean) — they're not a
+> reliable fixed-width or unique value. Prefer `captureCountryTo()`'s ISO code as the stable
+> identifier; reach for `captureDialCodeTo()` only when the numeric code itself is what you need
+> (a `tel:` link, a billing rule keyed by calling code).
+
+Need the value in a callback instead of persisting it — a validation rule, `afterStateUpdated()`,
+`mutateFormDataBeforeSave()`? Both capture methods are just a convenience over accessors available
+regardless of whether capture is enabled:
+
+```php
+function (PhoneInput $component) {
+    $component->getCountry();   // ?string — the ISO code
+    $component->getDialCode();  // ?int    — the calling code
+}
+```
+
 #### Selector, extensions & affordances
 
 ```php
