@@ -88,6 +88,7 @@
                 class="fi-phone-input-field"
                 id="{{ $id }}"
                 value="{{ $vm->displayValue }}"
+                x-bind:value="national"
                 x-bind:placeholder="placeholder"
                 placeholder="{{ $vm->resolvedPlaceholder() }}"
                 @if ($hasError) aria-invalid="true" @endif
@@ -107,6 +108,7 @@
                     inputmode="numeric"
                     class="fi-phone-input-ext"
                     value="{{ $vm->number->extension }}"
+                    x-bind:value="extension"
                     maxlength="{{ $vm->maxExtensionLength }}"
                     aria-label="{{ trans('filament-advanced-components::phone-input.extension') }}"
                     @disabled($vm->isDisabled)
@@ -171,24 +173,42 @@
                     role="listbox"
                     aria-label="{{ trans('filament-advanced-components::phone-input.select_country') }}"
                 >
-                    <template x-for="(country, i) in filteredCountries" :key="country.iso">
+                    {{--
+                        The loop variable is deliberately NOT named `country`:
+                        that's also the name of this component's own reactive
+                        `country` property (the selected ISO). Alpine binds
+                        `this` for a method called from an `x-on` expression to
+                        the merged scope at that call site — inside this loop,
+                        that merged scope would have TWO `country` keys (the
+                        iteration item here, the component's string outside).
+                        `selectCountry()` assigns `this.country = iso`; with a
+                        same-named loop variable that write lands on the
+                        shadowed loop scope instead of the component, silently
+                        no-opping the update *and* permanently corrupting that
+                        list item's bound data (it forever renders from the
+                        stale, now-string "country" instead of the original
+                        option object). `option` sidesteps the collision
+                        entirely, so plain `country` below unambiguously means
+                        "the selected ISO".
+                    --}}
+                    <template x-for="(option, i) in filteredCountries" :key="option.iso">
                         <li
                             class="fi-phone-input-option"
                             role="option"
                             x-bind:data-active="i === activeIndex ? 'true' : 'false'"
-                            x-bind:aria-selected="country.iso === $data.country ? 'true' : 'false'"
+                            x-bind:aria-selected="option.iso === country ? 'true' : 'false'"
                             x-bind:class="{
                                 'fi-phone-input-option-active': i === activeIndex,
-                                'fi-phone-input-option-selected': country.iso === $data.country,
+                                'fi-phone-input-option-selected': option.iso === country,
                             }"
-                            x-on:click="selectCountry(country.iso)"
+                            x-on:click="selectCountry(option.iso)"
                             x-on:mouseenter="activeIndex = i"
                         >
                             @if ($vm->showFlags)
-                                <span class="fi-phone-input-flag" x-text="country.flag" aria-hidden="true"></span>
+                                <span class="fi-phone-input-flag" x-text="option.flag" aria-hidden="true"></span>
                             @endif
-                            <span class="fi-phone-input-option-name" x-text="country.name"></span>
-                            <span class="fi-phone-input-option-dial" x-text="'+' + country.dialCode"></span>
+                            <span class="fi-phone-input-option-name" x-text="option.name"></span>
+                            <span class="fi-phone-input-option-dial" x-text="'+' + option.dialCode"></span>
                         </li>
                     </template>
 
