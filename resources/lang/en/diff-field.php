@@ -16,4 +16,7 @@ return [
     // The collapsed-context toggle row, e.g. "Expand 12 hidden lines".
     'expand' => 'Expand :count hidden line|Expand :count hidden lines',
 
+    // Shown instead of the diff table when oldValue or newValue is empty.
+    'no_changes' => 'No changes to show.',
+
 ];

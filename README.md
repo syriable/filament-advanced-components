@@ -1962,6 +1962,12 @@ fields change.
 - `filename(string | Closure | null $name = null)` — the name shown in the diff header. When
   omitted, the header falls back to the field's label.
 
+#### Empty values
+
+If `oldValue()` or `newValue()` resolves to an empty string (or is never set), there is nothing
+meaningful to diff from or to, so the field renders a "No changes to show." message instead of
+treating the other side's content as an entirely added or deleted file.
+
 #### Display-only
 
 `DiffField` extends Filament's `Field` for full schema integration (labels, helper text,

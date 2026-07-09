@@ -111,3 +111,49 @@ it('is never dehydrated into the form payload', function () {
 
     expect($field->isDehydrated())->toBeFalse();
 });
+
+describe('empty old/new values', function () {
+    it('renders a no-changes message instead of a diff when oldValue is empty', function () {
+        $html = DiffField::make('changes')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->newValue("one\ntwo")
+            ->toHtml();
+
+        expect($html)->toContain('fi-diff-field-empty')
+            ->and($html)->toContain('No changes to show.')
+            ->and($html)->not->toContain('fi-diff-field-row-addition')
+            ->and($html)->not->toContain('<table');
+    });
+
+    it('renders a no-changes message instead of a diff when newValue is empty', function () {
+        $html = DiffField::make('changes')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->oldValue("one\ntwo")
+            ->toHtml();
+
+        expect($html)->toContain('fi-diff-field-empty')
+            ->and($html)->not->toContain('fi-diff-field-row-deletion')
+            ->and($html)->not->toContain('<table');
+    });
+
+    it('renders a no-changes message when neither value is set', function () {
+        $html = DiffField::make('changes')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->toHtml();
+
+        expect($html)->toContain('fi-diff-field-empty');
+    });
+
+    it('still renders the header with zeroed stats when reporting no changes', function () {
+        $html = DiffField::make('changes')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->filename('config/app.php')
+            ->newValue("one\ntwo")
+            ->toHtml();
+
+        expect($html)->toContain('config/app.php')
+            ->and($html)->toContain('+0')
+            ->and($html)->toContain('−0')
+            ->and($html)->not->toContain('fi-diff-field-stat-square-addition');
+    });
+});

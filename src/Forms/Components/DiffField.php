@@ -27,6 +27,11 @@ use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\DiffGenerator;
  * The field diffs the two raw strings itself (via sebastian/diff) — it does
  * not accept pre-computed diff data. It is display-only: it captures no user
  * input and is never dehydrated back into the form payload.
+ *
+ * When either {@see oldValue()} or {@see newValue()} is empty or not set,
+ * there is nothing meaningful to diff from or to, so the field reports no
+ * changes instead of rendering the other side as an entirely added or
+ * deleted file — see {@see DiffFile::hasNoChanges()}.
  */
 final class DiffField extends Field
 {
