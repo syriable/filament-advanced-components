@@ -1,0 +1,218 @@
+/*
+ * DiffField stylesheet.
+ *
+ * Hand-authored, dependency-free CSS registered through FilamentAsset, so the
+ * field works out of the box in any panel — no custom theme required. Follows
+ * Filament v5's conventions: colors come from the panel's registered palette
+ * (`--gray-*`, `--success-*`, `--danger-*`), and dark mode is driven by the
+ * `.dark` class Filament toggles on `<html>`.
+ */
+
+.fi-diff-field {
+    border: 1px solid color-mix(in oklab, var(--gray-950) 15%, transparent);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.dark .fi-diff-field {
+    border-color: color-mix(in oklab, var(--gray-200) 20%, transparent);
+}
+
+/* Rows hidden inside collapsed hunks must not flash before Alpine boots. */
+.fi-diff-field [x-cloak] {
+    display: none !important;
+}
+
+/* File header: filename plus the additions/deletions stats. */
+
+.fi-diff-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background-color: color-mix(in oklab, var(--gray-500) 8%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--gray-950) 10%, transparent);
+}
+
+.dark .fi-diff-field-header {
+    border-bottom-color: color-mix(in oklab, var(--gray-200) 15%, transparent);
+}
+
+.fi-diff-field-filename {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gray-950);
+    overflow-wrap: anywhere;
+}
+
+.dark .fi-diff-field-filename {
+    color: var(--gray-100);
+}
+
+.fi-diff-field-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-diff-field-stat-additions {
+    color: var(--success-600);
+}
+
+.dark .fi-diff-field-stat-additions {
+    color: var(--success-400);
+}
+
+.fi-diff-field-stat-deletions {
+    color: var(--danger-600);
+}
+
+.dark .fi-diff-field-stat-deletions {
+    color: var(--danger-400);
+}
+
+.fi-diff-field-stat-squares {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.fi-diff-field-stat-square {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 2px;
+}
+
+.fi-diff-field-stat-square-addition {
+    background-color: var(--success-500);
+}
+
+.fi-diff-field-stat-square-deletion {
+    background-color: var(--danger-500);
+}
+
+.fi-diff-field-stat-square-neutral {
+    background-color: color-mix(in oklab, var(--gray-500) 30%, transparent);
+}
+
+/* The diff table: dual line-number gutters, prefix column, content. */
+
+.fi-diff-field-scroll {
+    overflow-x: auto;
+}
+
+.fi-diff-field-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.fi-diff-field-gutter {
+    width: 1%;
+    min-width: 2.5rem;
+    padding: 0 0.625rem;
+    text-align: right;
+    vertical-align: top;
+    color: var(--gray-400);
+    user-select: none;
+    white-space: nowrap;
+}
+
+.dark .fi-diff-field-gutter {
+    color: var(--gray-500);
+}
+
+.fi-diff-field-prefix {
+    width: 1%;
+    padding: 0 0.25rem;
+    text-align: center;
+    vertical-align: top;
+    user-select: none;
+    white-space: pre;
+    color: var(--gray-400);
+}
+
+.dark .fi-diff-field-prefix {
+    color: var(--gray-500);
+}
+
+.fi-diff-field-content {
+    padding: 0 0.5rem 0 0.25rem;
+    white-space: pre;
+    color: var(--gray-950);
+}
+
+.dark .fi-diff-field-content {
+    color: var(--gray-200);
+}
+
+/* Row backgrounds per line type (context rows stay unpainted). */
+
+.fi-diff-field-row-addition {
+    background-color: color-mix(in oklab, var(--success-500) 12%, transparent);
+}
+
+.fi-diff-field-row-addition .fi-diff-field-gutter,
+.fi-diff-field-row-addition .fi-diff-field-prefix {
+    color: var(--success-600);
+}
+
+.dark .fi-diff-field-row-addition .fi-diff-field-gutter,
+.dark .fi-diff-field-row-addition .fi-diff-field-prefix {
+    color: var(--success-400);
+}
+
+.fi-diff-field-row-deletion {
+    background-color: color-mix(in oklab, var(--danger-500) 12%, transparent);
+}
+
+.fi-diff-field-row-deletion .fi-diff-field-gutter,
+.fi-diff-field-row-deletion .fi-diff-field-prefix {
+    color: var(--danger-600);
+}
+
+.dark .fi-diff-field-row-deletion .fi-diff-field-gutter,
+.dark .fi-diff-field-row-deletion .fi-diff-field-prefix {
+    color: var(--danger-400);
+}
+
+/* The collapsed-context toggle row. */
+
+.fi-diff-field-expand-row td {
+    padding: 0;
+}
+
+.fi-diff-field-expand-button {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+    padding: 0.25rem 0.625rem;
+    font: inherit;
+    font-weight: 500;
+    color: var(--primary-600);
+    background-color: color-mix(in oklab, var(--primary-500) 8%, transparent);
+    border: none;
+    cursor: pointer;
+}
+
+.fi-diff-field-expand-button:hover {
+    background-color: color-mix(in oklab, var(--primary-500) 15%, transparent);
+}
+
+.dark .fi-diff-field-expand-button {
+    color: var(--primary-400);
+}
+
+.fi-diff-field-expand-chevron {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
