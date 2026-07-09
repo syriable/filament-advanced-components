@@ -1927,6 +1927,51 @@ resolved once per render and memoized per locale; example numbers are memoized i
 and built only when something actually needs them. The Alpine layer reads a single pre-computed
 `PhoneViewModel`, so no configuration is ever re-derived in JavaScript.
 
+### DiffField
+
+A GitHub-style unified diff view as a form field: file header with additions/deletions stat
+squares, dual line-number gutters, red/green row backgrounds, and long runs of unchanged context
+collapsed behind an "Expand N hidden lines" toggle.
+
+The field diffs two raw strings itself — you hand it the old and new text, not pre-computed diff
+data. Line comparison is powered by [`sebastian/diff`](https://github.com/sebastianbergmann/diff),
+which Composer pulls in automatically with this package (it is the package's only non-Filament
+runtime dependency, and it performs stateless in-memory diffing only — no persistence, no models).
+
+#### Quick start
+
+```php
+use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\DiffField;
+
+DiffField::make('changes')
+    ->filename('config/app.php')
+    ->oldValue(fn (Revision $record): string => $record->previous_content)
+    ->newValue(fn (Revision $record): string => $record->content);
+```
+
+`oldValue()` and `newValue()` accept a plain string or a closure (with the usual Filament
+injections — `$record`, `$get`, ...), so the diff can be static or recomputed live as other
+fields change.
+
+#### Options
+
+- `contextLines(int | Closure $lines = 3)` — how many unchanged lines stay visible around each
+  change. Any longer run of unchanged context is grouped into a single collapsed block; clicking
+  it reveals the hidden rows instantly (they are already in the DOM, toggled by Alpine — no
+  Livewire round-trip).
+- `filename(string | Closure | null $name = null)` — the name shown in the diff header. When
+  omitted, the header falls back to the field's label.
+
+#### Display-only
+
+`DiffField` extends Filament's `Field` for full schema integration (labels, helper text,
+visibility closures), but it captures no user input: it is `dehydrated(false)` by default, so
+nothing is ever written back into the form state on submit.
+
+Colors come from the panel's registered semantic palette (`--success-*`, `--danger-*`,
+`--gray-*`) with automatic dark-mode variants, so the view respects your theme customization out
+of the box.
+
 ## Testing
 
 ```bash

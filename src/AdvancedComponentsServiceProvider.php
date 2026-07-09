@@ -156,6 +156,7 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
             AlpineComponent::make('otp-input', __DIR__ . '/../resources/dist/components/otp-input.js'),
             AlpineComponent::make('phone-input', __DIR__ . '/../resources/dist/components/phone-input.js'),
             Css::make('advanced-select', __DIR__ . '/../resources/css/advanced-select.css'),
+            Css::make('diff-field', __DIR__ . '/../resources/css/diff-field.css'),
             Css::make('advanced-toggle', __DIR__ . '/../resources/css/advanced-toggle.css'),
             Css::make('advanced-text', __DIR__ . '/../resources/css/advanced-text.css'),
             Css::make('multi-progress', __DIR__ . '/../resources/css/multi-progress.css'),
