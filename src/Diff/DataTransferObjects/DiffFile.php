@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects;
 
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\DiffGenerator;
+
 /**
  * The complete computed diff for one pair of old/new strings: the ordered
  * hunks to render plus the header stats (filename, additions, deletions).
@@ -19,6 +21,17 @@ final readonly class DiffFile
         public int $additionsCount,
         public int $deletionsCount,
     ) {}
+
+    /**
+     * True when the diff has nothing to show — either because the two sides
+     * are identical and fully collapsed away, or because
+     * {@see DiffGenerator::diff()} was given an empty old or new value and
+     * skipped diffing entirely.
+     */
+    public function hasNoChanges(): bool
+    {
+        return $this->hunks === [];
+    }
 
     /**
      * The GitHub-style header stat squares: with fewer changes than squares,

@@ -100,6 +100,19 @@
     background-color: color-mix(in oklab, var(--gray-500) 30%, transparent);
 }
 
+/* Shown instead of the table when oldValue or newValue is empty. */
+
+.fi-diff-field-empty {
+    padding: 1rem 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    text-align: center;
+}
+
+.dark .fi-diff-field-empty {
+    color: var(--gray-400);
+}
+
 /* The diff table: dual line-number gutters, prefix column, content. */
 
 .fi-diff-field-scroll {

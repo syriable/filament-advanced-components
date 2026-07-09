@@ -24,13 +24,21 @@ final class DiffGenerator
         int $contextLines = 3,
         ?string $filename = null,
     ): DiffFile {
+        // Either side missing means there is nothing meaningful to compare
+        // (no "before" to diff from, or no "after" to diff to), so the field
+        // reports no changes rather than rendering the other side as an
+        // entirely added/deleted file.
+        if (self::hasNoChanges($old, $new)) {
+            return new DiffFile(filename: $filename, hunks: [], additionsCount: 0, deletionsCount: 0);
+        }
+
         $contextLines = max(0, $contextLines);
 
         $differ = new Differ(new UnifiedDiffOutputBuilder);
 
         // Lines are split here rather than by the differ so that an empty
-        // string means "zero lines" (a new or deleted file), not a file
-        // containing one empty line — matching git's semantics.
+        // string means "zero lines", not a file containing one empty line —
+        // matching git's semantics.
         $tagged = $differ->diffToArray(self::splitLines($old), self::splitLines($new));
 
         $lines = [];
@@ -59,6 +67,15 @@ final class DiffGenerator
             additionsCount: $additions,
             deletionsCount: $deletions,
         );
+    }
+
+    /**
+     * True when either side is empty — nothing to diff from, or nothing to
+     * diff to — so the field should report no changes at all.
+     */
+    private static function hasNoChanges(string $old, string $new): bool
+    {
+        return $old === '' || $new === '';
     }
 
     /**

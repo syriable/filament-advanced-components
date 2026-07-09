@@ -27,6 +27,7 @@ describe('identical inputs', function () {
         expect($file->additionsCount)->toBe(0)
             ->and($file->deletionsCount)->toBe(0)
             ->and($file->hunks)->toHaveCount(1)
+            ->and($file->hasNoChanges())->toBeFalse()
             ->and(allDiffLines($file))->toHaveCount(3)
             ->and(allDiffLines($file)[0]->type)->toBe(DiffLineType::Context);
     });
@@ -100,39 +101,38 @@ describe('additions, deletions, and mixed changes', function () {
 });
 
 describe('empty inputs', function () {
-    it('treats an empty old string as a new file of pure additions', function () {
+    it('reports no changes when the old string is empty, even if the new string has content', function () {
         $file = DiffGenerator::diff('', "one\ntwo");
 
-        $lines = allDiffLines($file);
-
-        expect($file->additionsCount)->toBe(2)
+        expect($file->hunks)->toBe([])
+            ->and($file->additionsCount)->toBe(0)
             ->and($file->deletionsCount)->toBe(0)
-            ->and($lines)->toHaveCount(2)
-            ->and($lines[0]->type)->toBe(DiffLineType::Addition)
-            ->and($lines[0]->oldLineNo)->toBeNull()
-            ->and($lines[0]->newLineNo)->toBe(1)
-            ->and($lines[1]->newLineNo)->toBe(2);
+            ->and($file->hasNoChanges())->toBeTrue();
     });
 
-    it('treats an empty new string as a deleted file of pure deletions', function () {
+    it('reports no changes when the new string is empty, even if the old string has content', function () {
         $file = DiffGenerator::diff("one\ntwo", '');
 
-        $lines = allDiffLines($file);
-
-        expect($file->additionsCount)->toBe(0)
-            ->and($file->deletionsCount)->toBe(2)
-            ->and($lines)->toHaveCount(2)
-            ->and($lines[0]->type)->toBe(DiffLineType::Deletion)
-            ->and($lines[0]->oldLineNo)->toBe(1)
-            ->and($lines[0]->newLineNo)->toBeNull();
+        expect($file->hunks)->toBe([])
+            ->and($file->additionsCount)->toBe(0)
+            ->and($file->deletionsCount)->toBe(0)
+            ->and($file->hasNoChanges())->toBeTrue();
     });
 
-    it('produces no hunks when both strings are empty', function () {
+    it('reports no changes when both strings are empty', function () {
         $file = DiffGenerator::diff('', '');
 
         expect($file->hunks)->toBe([])
             ->and($file->additionsCount)->toBe(0)
-            ->and($file->deletionsCount)->toBe(0);
+            ->and($file->deletionsCount)->toBe(0)
+            ->and($file->hasNoChanges())->toBeTrue();
+    });
+
+    it('still carries the filename through when reporting no changes', function () {
+        $file = DiffGenerator::diff('', '', filename: 'config/app.php');
+
+        expect($file->filename)->toBe('config/app.php')
+            ->and($file->hasNoChanges())->toBeTrue();
     });
 });
 
