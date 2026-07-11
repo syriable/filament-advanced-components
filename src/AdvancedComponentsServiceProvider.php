@@ -23,6 +23,8 @@ use Syriable\Filament\Plugins\AdvancedComponents\AdvancedText\Support\TextMasker
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
 use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Contracts\BuildsConfirmationAction;
 use Syriable\Filament\Plugins\AdvancedComponents\Commands\AdvancedComponentsCommand;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Contracts\BuildsRollbackAction;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Rollback\RollbackManager;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\FormatsPhoneNumbers;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\NormalizesPhoneNumbers;
 use Syriable\Filament\Plugins\AdvancedComponents\Phone\Contracts\PhoneMetadataProvider;
@@ -98,6 +100,11 @@ class AdvancedComponentsServiceProvider extends PackageServiceProvider
         // change how every confirmation modal is constructed globally,
         // without subclassing the component.
         $this->app->singleton(BuildsConfirmationAction::class, ConfirmationManager::class);
+
+        // The DiffField Rollback button builder. Rebind this to change how
+        // every Rollback button looks or behaves globally, without
+        // subclassing the component.
+        $this->app->singleton(BuildsRollbackAction::class, RollbackManager::class);
 
         // The PhoneInput metadata/formatting/validation stack, all backed by
         // libphonenumber and resolved offline. Each layer is bound to its
