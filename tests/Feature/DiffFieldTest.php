@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use Filament\Actions\Action;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
+use Livewire\Livewire;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Contracts\BuildsRollbackAction;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects\DiffFile;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Rollback\RollbackManager;
 use Syriable\Filament\Plugins\AdvancedComponents\Forms\Components\DiffField;
+use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\ActionsFormLivewireComponent;
 use Syriable\Filament\Plugins\AdvancedComponents\Tests\Fixtures\SchemaLivewireComponent;
 
 beforeEach(function () {
@@ -219,6 +224,52 @@ describe('modal presentation', function () {
             ->and($withRollback->getViewDiffAction()->getModalSubmitAction()->getLabel())->toBe('Rollback');
     });
 
+    it('resolves the default RollbackManager from the container to build the Rollback button', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->onRollback(fn () => null);
+
+        expect($field->getRollbackActionBuilder())->toBeInstanceOf(RollbackManager::class);
+    });
+
+    it('lets the Rollback action builder be swapped per-instance, like AdvancedToggle\'s confirmation builder', function () {
+        $customAction = Action::make('rollback')->label('Undo it');
+
+        $builder = new class($customAction) implements BuildsRollbackAction
+        {
+            public function __construct(private Action $action) {}
+
+            public function build(DiffField $field, Action $action): Action
+            {
+                return $this->action;
+            }
+        };
+
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->onRollback(fn () => null)
+            ->buildRollbackActionUsing($builder);
+
+        expect($field->getRollbackActionBuilder())->toBe($builder)
+            ->and($field->getViewDiffAction()->getModalSubmitAction())->toBe($customAction)
+            ->and($field->getViewDiffAction()->getModalSubmitAction()->getLabel())->toBe('Undo it');
+    });
+
+    it('rebuilds the viewDiff action after swapping the Rollback builder', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->onRollback(fn () => null);
+
+        $before = $field->getViewDiffAction();
+
+        $field->buildRollbackActionUsing(new RollbackManager);
+
+        expect($field->getViewDiffAction())->not->toBe($before);
+    });
+
     it('invokes the onRollback callback with the old and new values, and never on its own', function () {
         $received = null;
 
@@ -234,6 +285,26 @@ describe('modal presentation', function () {
         expect($received)->toBeNull();
 
         $field->handleRollback();
+
+        expect($received)->toBe(['old value', 'new value']);
+    });
+
+    it('runs the onRollback callback through a real mounted-action click, not just handleRollback() directly', function () {
+        $received = null;
+
+        $field = DiffField::make('message')
+            ->modal()
+            ->oldValue('old value')
+            ->newValue('new value')
+            ->onRollback(function (string $oldValue, string $newValue) use (&$received): void {
+                $received = [$oldValue, $newValue];
+            });
+
+        ActionsFormLivewireComponent::$components = [$field];
+
+        Livewire::test(ActionsFormLivewireComponent::class, ['data' => ['message' => null]])
+            ->call('mountAction', 'viewDiff', [], ['schemaComponent' => 'form.message'])
+            ->call('callMountedAction');
 
         expect($received)->toBe(['old value', 'new value']);
     });
