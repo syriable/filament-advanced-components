@@ -780,12 +780,12 @@ Filament fields.
 #### Built-in row types
 
 | Type                                | Cell editor                                     | Per-row settings |
-| ----------------------------------- | ----------------------------------------------- | ---------------- |
+| ------------------------------------ | ------------------------------------------------ | ------------------ |
 | `boolean`                           | Checkmark                                       | —                |
 | `text` / `textarea` / `description` | Text input / textarea                           | —                |
 | `number`                            | Number input                                    | —                |
-| `price`                             | Number input with currency prefix               | Currency         |
-| `select` / `radio`                  | Dropdown / radio group                          | Options list     |
+| `price`                             | Number input with currency prefix               | Currency          |
+| `select` / `radio`                  | Dropdown / radio group                          | Options list      |
 | `delivery`                          | Amount + unit (`{"amount": 7, "unit": "days"}`) | —                |
 | `footer`                            | Per-package call-to-action line                 | —                |
 
@@ -890,7 +890,7 @@ Every `SelectOption` setter accepts a static value **or** a closure with the fie
 option itself), so nothing is evaluated until render time.
 
 | Method                                          | Purpose                                                                        |
-| ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- |
 | `make($value, $label = null)`                   | The value stored in state and its label (defaults to the value).               |
 | `label()` / `translateLabel()`                  | Set / translate the label.                                                     |
 | `description()`                                 | A muted secondary line under the label.                                        |
@@ -1240,7 +1240,7 @@ Separator::make()->zigzag()
 These resolve to CSS custom properties on the separator root:
 
 | Call              | Border variants                 | Zigzag variant                                  |
-| ----------------- | ------------------------------- | ----------------------------------------------- |
+| ----------------- | -------------------------------- | -------------------------------------------------- |
 | `thick()`         | `--fi-separator-thickness: 3px` | `--fi-separator-zigzag-s: 100px`, `-b: 35px`    |
 | `thick(5)`        | `--fi-separator-thickness: 5px` | same as `thick()` unless a second arg is passed |
 | `thick(60, 20)`   | ignored                         | `--fi-separator-zigzag-s: 60px`, `-b: 20px`     |
@@ -1744,7 +1744,7 @@ PhoneInput::make('phone')
 ```
 
 | Storage                 | Example              | Display                    | Example              |
-| ----------------------- | -------------------- | -------------------------- | -------------------- |
+| ------------------------ | --------------------- | ---------------------------- | --------------------- |
 | `->storeE164()`         | `+14155552671`       | `->displayInternational()` | `+1 415-555-2671`    |
 | `->storeNational()`     | `(415) 555-2671`     | `->displayNational()`      | `(415) 555-2671`     |
 | `->storeInternational()`| `+1 415-555-2671`    | `->displayE164()`          | `+14155552671`       |
@@ -1881,7 +1881,7 @@ country, strips junk, and formats automatically.
 The widget dispatches bubbling DOM events you can hook into with `x-on:` or a listener:
 
 | Event                   | Detail                          | When                                   |
-| ----------------------- | ------------------------------- | -------------------------------------- |
+| ------------------------ | --------------------------------- | ----------------------------------------- |
 | `phone-changed`         | `{ value, country }`            | the number changed                     |
 | `phone-country-changed` | `{ country, dialCode }`         | a country was selected                 |
 | `phone-copied`          | `{ value }`                     | the copy button succeeded              |
@@ -2011,6 +2011,30 @@ DiffField::make('message')
 The callback is injected with `oldValue`, `newValue`, and the usual `$record`/`$get`/etc. The field
 itself never touches persistence — without `onRollback()` the modal has no submit button at all;
 registering one is what makes it appear, and committing the change is entirely the callback's job.
+
+The Rollback button's own appearance (label, color, icon) is built by a swappable
+`BuildsRollbackAction`, the same extension point pattern `AdvancedToggle`'s confirmation modal
+uses — rebind it per instance or globally to change how every Rollback button looks, without
+subclassing `DiffField`:
+
+```php
+DiffField::make('message')
+    ->modal()
+    ->onRollback($callback)
+    ->buildRollbackActionUsing(new MyHouseStyleRollbackAction);
+```
+
+```php
+// Globally, in a service provider:
+$this->app->bind(
+    \Syriable\Filament\Plugins\AdvancedComponents\Diff\Contracts\BuildsRollbackAction::class,
+    MyHouseStyleRollbackAction::class,
+);
+```
+
+A `BuildsRollbackAction` implementation receives (and should return) the same `Filament\Actions\Action`
+instance Filament already wired up as the modal's submit button — customize its `label()`/`color()`/
+`icon()`/etc. rather than replacing it outright, or the button's click handler stops working.
 
 #### Display-only
 
