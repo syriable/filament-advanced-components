@@ -9,8 +9,11 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
+use Syriable\Filament\Plugins\AdvancedComponents\AdvancedToggle\Confirmation\ConfirmationManager;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Contracts\BuildsRollbackAction;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects\DiffFile;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects\WordDiffToken;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Rollback\RollbackManager;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\DiffGenerator;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\WordDiffGenerator;
 
@@ -86,6 +89,8 @@ final class DiffField extends Field
     protected ?array $cachedWordDiffTokens = null;
 
     protected ?Action $viewDiffAction = null;
+
+    protected ?BuildsRollbackAction $rollbackActionBuilder = null;
 
     protected function setUp(): void
     {
@@ -273,11 +278,34 @@ final class DiffField extends Field
     }
 
     /**
+     * Swap the Rollback button builder for this instance only, overriding
+     * the container-bound {@see BuildsRollbackAction} default.
+     */
+    public function buildRollbackActionUsing(BuildsRollbackAction $builder): static
+    {
+        $this->rollbackActionBuilder = $builder;
+        $this->viewDiffAction = null;
+
+        return $this;
+    }
+
+    public function getRollbackActionBuilder(): BuildsRollbackAction
+    {
+        return $this->rollbackActionBuilder ??= app()->bound(BuildsRollbackAction::class)
+            ? app(BuildsRollbackAction::class)
+            : app(RollbackManager::class);
+    }
+
+    /**
      * The mounted action backing the modal — built entirely from Filament's
      * own action-modal machinery (heading, icon, submit/cancel buttons), so
      * no bespoke overlay markup exists anywhere in this component; only the
      * modal's body content ({@see resources/views/components/diff-field-modal.blade.php})
-     * is custom.
+     * is custom. The Rollback submit button's appearance is delegated to
+     * {@see getRollbackActionBuilder()} rather than configured inline, so it
+     * can be swapped globally or per-instance without subclassing this field
+     * — the same pattern {@see ConfirmationManager}
+     * uses for `AdvancedToggle`'s confirmation modal.
      */
     public function getViewDiffAction(): Action
     {
@@ -289,12 +317,9 @@ final class DiffField extends Field
                 'filament-advanced-components::components.diff-field-modal',
                 ['field' => $this],
             ))
-            ->modalSubmitAction($this->hasRollback() ? function (Action $action): Action {
-                return $action
-                    ->label(self::translate('filament-advanced-components::diff-field.rollback'))
-                    ->color('danger')
-                    ->icon('heroicon-o-arrow-uturn-left');
-            } : false)
+            ->modalSubmitAction($this->hasRollback()
+                ? fn (Action $action): Action => $this->getRollbackActionBuilder()->build($this, $action)
+                : false)
             ->modalCancelAction(false)
             ->action(function (DiffField $component): void {
                 $component->handleRollback();
