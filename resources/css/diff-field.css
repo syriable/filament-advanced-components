@@ -229,3 +229,188 @@
     height: 1rem;
     flex-shrink: 0;
 }
+
+/* modal() mode: the compact trigger shown inline in the form. */
+
+.fi-diff-field-modal-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gray-950);
+    background-color: color-mix(in oklab, var(--gray-500) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--gray-950) 15%, transparent);
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.fi-diff-field-modal-trigger:hover {
+    background-color: color-mix(in oklab, var(--gray-500) 14%, transparent);
+}
+
+.dark .fi-diff-field-modal-trigger {
+    color: var(--gray-100);
+    border-color: color-mix(in oklab, var(--gray-200) 20%, transparent);
+}
+
+.fi-diff-field-modal-trigger-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--gray-400);
+}
+
+/* modal() mode: the modal body — Side-by-side/Inline toggle plus views. */
+
+.fi-diff-field-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.fi-diff-field-modal-toggle {
+    display: inline-flex;
+    align-self: flex-start;
+    gap: 2px;
+    padding: 2px;
+    background-color: color-mix(in oklab, var(--gray-500) 10%, transparent);
+    border-radius: 0.5rem;
+}
+
+.fi-diff-field-modal-toggle-option {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    background-color: transparent;
+    border: none;
+    border-radius: 0.4375rem;
+    cursor: pointer;
+}
+
+.fi-diff-field-modal-toggle-option.fi-diff-field-modal-toggle-active {
+    color: var(--gray-950);
+    background-color: var(--gray-50);
+    box-shadow: 0 1px 2px 0 color-mix(in oklab, var(--gray-950) 10%, transparent);
+}
+
+.dark .fi-diff-field-modal-toggle-option.fi-diff-field-modal-toggle-active {
+    color: var(--gray-100);
+    background-color: var(--gray-700);
+}
+
+.fi-diff-field-modal-box {
+    padding: 0.75rem 1rem;
+    border: 1px solid color-mix(in oklab, var(--gray-950) 12%, transparent);
+    border-radius: 0.5rem;
+}
+
+.fi-diff-field-modal-box + .fi-diff-field-modal-box {
+    margin-top: 0.75rem;
+}
+
+.dark .fi-diff-field-modal-box {
+    border-color: color-mix(in oklab, var(--gray-200) 18%, transparent);
+}
+
+.fi-diff-field-modal-box-old {
+    background-color: color-mix(in oklab, var(--danger-500) 5%, transparent);
+    border-color: color-mix(in oklab, var(--danger-500) 25%, transparent);
+}
+
+.fi-diff-field-modal-box-new {
+    background-color: color-mix(in oklab, var(--success-500) 5%, transparent);
+    border-color: color-mix(in oklab, var(--success-500) 25%, transparent);
+}
+
+.fi-diff-field-modal-box-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.fi-diff-field-modal-box-old .fi-diff-field-modal-box-label {
+    color: var(--danger-600);
+}
+
+.dark .fi-diff-field-modal-box-old .fi-diff-field-modal-box-label {
+    color: var(--danger-400);
+}
+
+.fi-diff-field-modal-box-new .fi-diff-field-modal-box-label {
+    color: var(--success-600);
+}
+
+.dark .fi-diff-field-modal-box-new .fi-diff-field-modal-box-label {
+    color: var(--success-400);
+}
+
+.fi-diff-field-modal-box-content {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--gray-950);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.dark .fi-diff-field-modal-box-content {
+    color: var(--gray-100);
+}
+
+/* The Inline view's merged paragraph: unlike the plain old/new boxes above,
+   word spacing already lives inside each token's own text, so this wraps
+   normally instead of preserving whitespace verbatim. */
+.fi-diff-field-modal-inline-content {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--gray-950);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.dark .fi-diff-field-modal-inline-content {
+    color: var(--gray-100);
+}
+
+.fi-diff-field-modal-box-empty {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    font-style: italic;
+    color: var(--gray-400);
+}
+
+.dark .fi-diff-field-modal-box-empty {
+    color: var(--gray-500);
+}
+
+/* Word-level tokens in the Inline view. */
+
+.fi-diff-field-modal-token-addition {
+    color: var(--success-700);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    background-color: color-mix(in oklab, var(--success-500) 15%, transparent);
+}
+
+.dark .fi-diff-field-modal-token-addition {
+    color: var(--success-300);
+}
+
+.fi-diff-field-modal-token-deletion {
+    color: var(--danger-700);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    background-color: color-mix(in oklab, var(--danger-500) 15%, transparent);
+}
+
+.dark .fi-diff-field-modal-token-deletion {
+    color: var(--danger-300);
+}

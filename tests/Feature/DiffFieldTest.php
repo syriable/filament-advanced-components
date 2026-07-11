@@ -157,3 +157,172 @@ describe('empty old/new values', function () {
             ->and($html)->not->toContain('fi-diff-field-stat-square-addition');
     });
 });
+
+describe('modal presentation', function () {
+    it('is not modal by default, and registers no actions', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->oldValue('old')
+            ->newValue('new');
+
+        expect($field->isModal())->toBeFalse()
+            ->and($field->getDefaultActions())->toBe([]);
+    });
+
+    it('renders a compact trigger instead of the panel once modal() is enabled', function () {
+        $html = DiffField::make('validation.active_url')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->filename('validation.active_url')
+            ->oldValue('The :attribute test.')
+            ->newValue('The :attribute field must be a valid URL.')
+            ->toHtml();
+
+        expect($html)->toContain('fi-diff-field-modal-trigger')
+            ->and($html)->toContain('validation.active_url')
+            ->and($html)->not->toContain('fi-diff-field-table')
+            ->and($html)->not->toContain('fi-diff-field-header')
+            ->and($html)->toContain('mountAction')
+            ->and($html)->toContain('viewDiff');
+    });
+
+    it('registers the viewDiff action once modal() is enabled', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->filename('validation.active_url')
+            ->oldValue('old')
+            ->newValue('new');
+
+        $actions = $field->getDefaultActions();
+
+        expect($actions)->toHaveCount(1)
+            ->and($actions[0]->getName())->toBe('viewDiff')
+            ->and($actions[0]->getLabel())->toBe('validation.active_url');
+    });
+
+    it('has no submit action on the modal until onRollback() is registered', function () {
+        $withoutRollback = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal();
+
+        expect($withoutRollback->hasRollback())->toBeFalse()
+            ->and($withoutRollback->getViewDiffAction()->getModalSubmitAction())->toBeNull();
+
+        $withRollback = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->onRollback(fn () => null);
+
+        expect($withRollback->hasRollback())->toBeTrue()
+            ->and($withRollback->getViewDiffAction()->getModalSubmitAction())->not->toBeNull()
+            ->and($withRollback->getViewDiffAction()->getModalSubmitAction()->getLabel())->toBe('Rollback');
+    });
+
+    it('invokes the onRollback callback with the old and new values, and never on its own', function () {
+        $received = null;
+
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->oldValue('old value')
+            ->newValue('new value')
+            ->onRollback(function (string $oldValue, string $newValue) use (&$received): void {
+                $received = [$oldValue, $newValue];
+            });
+
+        expect($received)->toBeNull();
+
+        $field->handleRollback();
+
+        expect($received)->toBe(['old value', 'new value']);
+    });
+
+    it('does nothing when handleRollback() is called without a registered callback', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal();
+
+        $field->handleRollback();
+    })->throwsNoExceptions();
+
+    it('memoizes the word-diff tokens per request', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->oldValue('old')
+            ->newValue('new');
+
+        expect($field->getWordDiffTokens())->toBe($field->getWordDiffTokens());
+    });
+
+    it('recomputes the word-diff tokens when reconfigured', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->oldValue('old')
+            ->newValue('new');
+
+        $before = $field->getWordDiffTokens();
+
+        $field->newValue('completely different');
+
+        expect($field->getWordDiffTokens())->not->toBe($before);
+    });
+
+    it('renders the modal content with Side-by-side boxes and an Inline word-diff view', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->oldValue('The :attribute test.')
+            ->newValue('The :attribute field must be a valid URL.');
+
+        $html = $field->getViewDiffAction()->getModalContent()->render();
+
+        expect($html)->toContain('fi-diff-field-modal-toggle')
+            ->and($html)->toContain('Side by Side')
+            ->and($html)->toContain('Inline')
+            ->and($html)->toContain('fi-diff-field-modal-box-old')
+            ->and($html)->toContain('fi-diff-field-modal-box-new')
+            ->and($html)->toContain('The :attribute test.')
+            ->and($html)->toContain('The :attribute field must be a valid URL.')
+            ->and($html)->toContain('fi-diff-field-modal-token-deletion')
+            ->and($html)->toContain('fi-diff-field-modal-token-addition')
+            ->and($html)->toContain('>test.<')
+            ->and($html)->toContain('>field must be a valid URL.<');
+    });
+
+    it('shows the empty placeholder in the modal when a side is blank', function () {
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->newValue('brand new value');
+
+        $html = $field->getViewDiffAction()->getModalContent()->render();
+
+        expect($html)->toContain('fi-diff-field-modal-box-empty')
+            ->and($html)->toContain('(empty)')
+            ->and($html)->toContain('brand new value');
+    });
+
+    it('renders inline word-diff tokens with no whitespace between spans', function () {
+        // The Inline paragraph uses `white-space: normal` (not the plain
+        // boxes' `pre-wrap`), because word spacing already lives inside each
+        // token's own text — so any whitespace the *template* leaves between
+        // spans would render as spurious extra gaps or line breaks. Assert
+        // the compiled HTML has zero such whitespace between token tags.
+        $field = DiffField::make('message')
+            ->container(Schema::make(new SchemaLivewireComponent))
+            ->modal()
+            ->oldValue('The :attribute test.')
+            ->newValue('The :attribute field must be a valid URL.');
+
+        $html = $field->getViewDiffAction()->getModalContent()->render();
+
+        preg_match('/<p class="fi-diff-field-modal-inline-content">(.*?)<\/p>/s', $html, $matches);
+
+        expect($matches[1])->toBe(
+            '<span class="fi-diff-field-modal-token fi-diff-field-modal-token-context">The :attribute </span>'
+            . '<span class="fi-diff-field-modal-token fi-diff-field-modal-token-deletion">test.</span>'
+            . '<span class="fi-diff-field-modal-token fi-diff-field-modal-token-addition">field must be a valid URL.</span>',
+        );
+    });
+});
