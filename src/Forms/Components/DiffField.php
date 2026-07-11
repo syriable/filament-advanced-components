@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Syriable\Filament\Plugins\AdvancedComponents\Forms\Components;
 
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects\DiffFile;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\DataTransferObjects\WordDiffToken;
 use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\DiffGenerator;
+use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\WordDiffGenerator;
 
 /**
  * A GitHub-style unified diff view as a first-class Filament form field:
@@ -32,6 +37,30 @@ use Syriable\Filament\Plugins\AdvancedComponents\Diff\Support\DiffGenerator;
  * there is nothing meaningful to diff from or to, so the field reports no
  * changes instead of rendering the other side as an entirely added or
  * deleted file — see {@see DiffFile::hasNoChanges()}.
+ *
+ * ## Modal presentation
+ *
+ * For short values (a translation string, a validation message) the full
+ * line-diff table is overkill. `->modal()` switches the field to a compact
+ * trigger that opens a native Filament action modal — built entirely from
+ * Filament's own action-modal machinery, no bespoke overlay markup — offering
+ * a Side-by-side (plain old/new text) and Inline (word-level diff, with
+ * strikethrough/underline spans) view, toggled client-side:
+ *
+ * ```php
+ * DiffField::make('message')
+ *     ->modal()
+ *     ->oldValue(fn (Translation $record): string => $record->getOriginal('value'))
+ *     ->newValue(fn (Translation $record): string => $record->value)
+ *     ->onRollback(function (Translation $record, string $oldValue) {
+ *         $record->update(['value' => $oldValue]);
+ *     });
+ * ```
+ *
+ * `onRollback()` is a closure hook, not a built-in write: the field stays
+ * display-only and never touches persistence itself, consistent with the
+ * rest of this package — the Rollback button only appears when a callback is
+ * registered, and it is that callback's job to actually commit the change.
  */
 final class DiffField extends Field
 {
@@ -45,7 +74,18 @@ final class DiffField extends Field
 
     protected string | Closure | null $filename = null;
 
+    protected bool $modal = false;
+
+    protected ?Closure $onRollback = null;
+
     protected ?DiffFile $cachedDiffFile = null;
+
+    /**
+     * @var array<int, WordDiffToken>|null
+     */
+    protected ?array $cachedWordDiffTokens = null;
+
+    protected ?Action $viewDiffAction = null;
 
     protected function setUp(): void
     {
@@ -63,6 +103,7 @@ final class DiffField extends Field
     {
         $this->oldValue = $value;
         $this->cachedDiffFile = null;
+        $this->cachedWordDiffTokens = null;
 
         return $this;
     }
@@ -74,6 +115,7 @@ final class DiffField extends Field
     {
         $this->newValue = $value;
         $this->cachedDiffFile = null;
+        $this->cachedWordDiffTokens = null;
 
         return $this;
     }
@@ -88,6 +130,49 @@ final class DiffField extends Field
         $this->cachedDiffFile = null;
 
         return $this;
+    }
+
+    /**
+     * Render as a compact trigger that opens the diff in a modal (Side-by-
+     * side and Inline word-diff views) instead of the full inline line-diff
+     * table. Suited to short values — a translation string, a validation
+     * message — where a whole-file table is overkill.
+     */
+    public function modal(bool $condition = true): static
+    {
+        $this->modal = $condition;
+
+        return $this;
+    }
+
+    public function isModal(): bool
+    {
+        return $this->modal;
+    }
+
+    /**
+     * Registers a "Rollback" button on the modal's footer that runs the
+     * given callback (injected with `oldValue`, `newValue`, and the usual
+     * `$record`/`$get`/etc.) when clicked. The field itself never writes
+     * anything anywhere — actually committing the rollback is entirely the
+     * callback's responsibility. Passing `null` removes the button.
+     */
+    public function onRollback(?Closure $callback): static
+    {
+        $this->onRollback = $callback;
+        $this->viewDiffAction = null;
+
+        return $this;
+    }
+
+    public function getOnRollbackCallback(): ?Closure
+    {
+        return $this->onRollback;
+    }
+
+    public function hasRollback(): bool
+    {
+        return $this->onRollback instanceof Closure;
     }
 
     /**
@@ -125,6 +210,38 @@ final class DiffField extends Field
     }
 
     /**
+     * The header/trigger/modal title text: the configured filename, falling
+     * back to the field's label, falling back to a generic placeholder.
+     */
+    public function getHeading(): string
+    {
+        $heading = $this->getFilename() ?? $this->getLabel();
+
+        if (is_string($heading)) {
+            return $heading;
+        }
+
+        if ($heading instanceof Htmlable) {
+            return $heading->toHtml();
+        }
+
+        return self::translate('filament-advanced-components::diff-field.untitled');
+    }
+
+    /**
+     * __() is typed to allow returning a translation array (for pluralized
+     * groups); every key this component looks up is a plain string, so the
+     * array branch never actually happens — this narrows it back to `string`
+     * for callers (like {@see Action::label()}) that don't accept one.
+     */
+    private static function translate(string $key): string
+    {
+        $value = __($key);
+
+        return is_string($value) ? $value : $key;
+    }
+
+    /**
      * The computed diff, memoized so repeated Blade render passes within the
      * same request never re-run the line comparison.
      */
@@ -136,5 +253,82 @@ final class DiffField extends Field
             contextLines: $this->getContextLines(),
             filename: $this->getFilename(),
         );
+    }
+
+    /**
+     * The word-level diff between {@see getOldValue()} and
+     * {@see getNewValue()}, used by the modal's Inline view. Memoized like
+     * {@see getDiffFile()}.
+     *
+     * @return array<int, WordDiffToken>
+     */
+    public function getWordDiffTokens(): array
+    {
+        return $this->cachedWordDiffTokens ??= WordDiffGenerator::diff($this->getOldValue(), $this->getNewValue());
+    }
+
+    public function getViewDiffActionName(): string
+    {
+        return 'viewDiff';
+    }
+
+    /**
+     * The mounted action backing the modal — built entirely from Filament's
+     * own action-modal machinery (heading, icon, submit/cancel buttons), so
+     * no bespoke overlay markup exists anywhere in this component; only the
+     * modal's body content ({@see resources/views/components/diff-field-modal.blade.php})
+     * is custom.
+     */
+    public function getViewDiffAction(): Action
+    {
+        return $this->viewDiffAction ??= Action::make($this->getViewDiffActionName())
+            ->label($this->getHeading())
+            ->modalHeading($this->getHeading())
+            ->modalIcon('heroicon-o-code-bracket')
+            ->modalContent(fn (): View => view(
+                'filament-advanced-components::components.diff-field-modal',
+                ['field' => $this],
+            ))
+            ->modalSubmitAction($this->hasRollback() ? function (Action $action): Action {
+                return $action
+                    ->label(self::translate('filament-advanced-components::diff-field.rollback'))
+                    ->color('danger')
+                    ->icon('heroicon-o-arrow-uturn-left');
+            } : false)
+            ->modalCancelAction(false)
+            ->action(function (DiffField $component): void {
+                $component->handleRollback();
+            });
+    }
+
+    /**
+     * @return array<Action>
+     */
+    public function getDefaultActions(): array
+    {
+        if (! $this->isModal()) {
+            return [];
+        }
+
+        return [$this->getViewDiffAction()];
+    }
+
+    /**
+     * Runs the registered {@see onRollback()} callback, if any. Public only
+     * so it can be invoked as the mounted action's handler via Filament's
+     * own component-injection — the field never calls this itself.
+     */
+    public function handleRollback(): void
+    {
+        $callback = $this->getOnRollbackCallback();
+
+        if (! $callback instanceof Closure) {
+            return;
+        }
+
+        $this->evaluate($callback, [
+            'oldValue' => $this->getOldValue(),
+            'newValue' => $this->getNewValue(),
+        ]);
     }
 }

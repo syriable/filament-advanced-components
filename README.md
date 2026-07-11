@@ -1968,6 +1968,50 @@ If `oldValue()` or `newValue()` resolves to an empty string (or is never set), t
 meaningful to diff from or to, so the field renders a "No changes to show." message instead of
 treating the other side's content as an entirely added or deleted file.
 
+#### Modal presentation
+
+The line-diff table is built for whole files. For a single short value — a translation string, a
+validation message — `->modal()` renders a compact trigger instead: clicking it opens the diff in
+a native Filament action modal (built entirely from Filament's own action-modal machinery, so
+there is no bespoke overlay markup to fight with your theme) with a **Side by Side** view (the
+plain old/new text, each in its own box) and an **Inline** view (a single sentence with the changed
+words struck through in red and the new words underlined in green), switched with a client-side
+toggle:
+
+```php
+DiffField::make('message')
+    ->modal()
+    ->filename('validation.active_url')
+    ->oldValue(fn (Translation $record): string => $record->getOriginal('value'))
+    ->newValue(fn (Translation $record): string => $record->value);
+```
+
+Word-level comparison (used only by the Inline view) is computed separately from the line-diff
+table by `WordDiffGenerator`, and — unlike the table's empty-value handling above — an empty side
+diffs normally: an empty `oldValue()` reads as "this value was just added" (shown entirely
+underlined), not as "nothing to compare."
+
+Because the trigger already carries the heading, you'll usually want `->hiddenLabel()` alongside
+`->modal()` so the field doesn't also print its own auto-generated label above it.
+
+##### Rollback
+
+Add a **Rollback** button to the modal's footer with `onRollback()`:
+
+```php
+DiffField::make('message')
+    ->modal()
+    ->oldValue(fn (Translation $record): string => $record->getOriginal('value'))
+    ->newValue(fn (Translation $record): string => $record->value)
+    ->onRollback(function (Translation $record, string $oldValue) {
+        $record->update(['value' => $oldValue]);
+    });
+```
+
+The callback is injected with `oldValue`, `newValue`, and the usual `$record`/`$get`/etc. The field
+itself never touches persistence — without `onRollback()` the modal has no submit button at all;
+registering one is what makes it appear, and committing the change is entirely the callback's job.
+
 #### Display-only
 
 `DiffField` extends Filament's `Field` for full schema integration (labels, helper text,
